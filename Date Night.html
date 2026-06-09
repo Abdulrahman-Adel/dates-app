@@ -1,0 +1,1924 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Date Night</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --ink: #1a1209;
+  --ink2: #4a3c2a;
+  --ink3: #8a7a68;
+  --dust: #f5f0e8;
+  --cream: #fdf9f3;
+  --warm: #e8dcc8;
+  --gold: #c4933f;
+  --gold2: #e8c07a;
+  --rose: #c4604a;
+  --rose2: #e8998a;
+  --sage: #6b8c7a;
+  --card: #fff8f0;
+  --border: rgba(60,40,20,0.12);
+  --shadow: 0 2px 24px rgba(60,30,10,0.08);
+  --r: 12px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--dust);
+  color: var(--ink);
+  min-height: 100vh;
+  line-height: 1.6;
+}
+
+/* ── Layout ── */
+#app { max-width: 860px; margin: 0 auto; padding: 0 20px 80px; }
+
+/* ── Header ── */
+header {
+  text-align: center;
+  padding: 48px 0 36px;
+  position: relative;
+}
+header::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 50%; transform: translateX(-50%);
+  width: 1px; height: 36px;
+  background: linear-gradient(to bottom, transparent, var(--gold));
+}
+.wordmark {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 12px;
+}
+header h1 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(38px, 6vw, 56px);
+  font-weight: 400;
+  color: var(--ink);
+  line-height: 1.1;
+}
+header h1 em { font-style: italic; color: var(--rose); }
+.subtitle {
+  font-size: 14px;
+  color: var(--ink3);
+  margin-top: 10px;
+  letter-spacing: 0.02em;
+}
+
+/* ── Nav tabs ── */
+nav {
+  display: flex;
+  gap: 4px;
+  background: var(--warm);
+  border-radius: 50px;
+  padding: 4px;
+  margin-bottom: 32px;
+}
+nav button {
+  flex: 1;
+  border: none;
+  background: none;
+  padding: 10px 16px;
+  border-radius: 46px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink2);
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+nav button.active {
+  background: var(--card);
+  color: var(--ink);
+  box-shadow: 0 1px 8px rgba(60,30,10,0.10);
+}
+
+/* ── Card ── */
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 28px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow);
+}
+.card-sm { padding: 20px 24px; }
+
+/* ── Sections ── */
+section { display: none; }
+section.active { display: block; }
+
+/* ── Settings ── */
+.settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 560px) { .settings-grid { grid-template-columns: 1fr; } }
+
+.field-label {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 6px;
+}
+input[type="text"], input[type="number"], textarea, select {
+  width: 100%;
+  background: var(--dust);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  color: var(--ink);
+  outline: none;
+  transition: border-color 0.2s;
+}
+input:focus, textarea:focus, select:focus {
+  border-color: var(--gold2);
+}
+textarea { resize: vertical; min-height: 80px; }
+
+/* ── Buttons ── */
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 12px 24px;
+  border: none; border-radius: 50px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px; font-weight: 500;
+  cursor: pointer; transition: all 0.2s;
+  text-decoration: none;
+}
+.btn-primary {
+  background: var(--ink);
+  color: var(--cream);
+}
+.btn-primary:hover { background: var(--ink2); transform: translateY(-1px); }
+.btn-gold {
+  background: var(--gold);
+  color: white;
+}
+.btn-gold:hover { background: #b5832e; transform: translateY(-1px); }
+.btn-outline {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--ink2);
+}
+.btn-outline:hover { border-color: var(--gold2); color: var(--ink); }
+.btn-sm { padding: 8px 16px; font-size: 13px; }
+.btn-rose { background: var(--rose); color: white; }
+.btn-rose:hover { background: #b5503a; }
+
+/* ── Quiz ── */
+#quiz-container { }
+.quiz-progress {
+  display: flex; gap: 6px; margin-bottom: 28px;
+}
+.quiz-dot {
+  height: 3px; flex: 1; border-radius: 2px;
+  background: var(--warm); transition: background 0.3s;
+}
+.quiz-dot.done { background: var(--gold); }
+.quiz-dot.active { background: var(--gold2); }
+
+.quiz-q {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 26px;
+  font-weight: 400;
+  margin-bottom: 20px;
+  color: var(--ink);
+  line-height: 1.3;
+}
+.quiz-q em { font-style: italic; color: var(--rose); }
+
+.options-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 10px;
+  margin-bottom: 24px;
+}
+.opt-btn {
+  background: var(--dust);
+  border: 1.5px solid var(--border);
+  border-radius: var(--r);
+  padding: 14px 16px;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.18s;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  color: var(--ink2);
+  line-height: 1.4;
+}
+.opt-btn .opt-icon {
+  display: block;
+  font-size: 22px;
+  margin-bottom: 6px;
+}
+.opt-btn:hover {
+  border-color: var(--gold2);
+  background: var(--cream);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(196,147,63,0.12);
+}
+.opt-btn.selected {
+  border-color: var(--gold);
+  background: #fff8ee;
+  color: var(--ink);
+  box-shadow: 0 2px 12px rgba(196,147,63,0.15);
+}
+.opt-btn.multi.selected::after {
+  content: '✓';
+  float: right;
+  color: var(--gold);
+  font-weight: 600;
+}
+
+.quiz-nav { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.step-indicator {
+  font-size: 12px;
+  color: var(--ink3);
+  letter-spacing: 0.05em;
+}
+
+/* ── Loading ── */
+.loading-screen {
+  text-align: center;
+  padding: 60px 0;
+}
+.spinner {
+  width: 48px; height: 48px;
+  border: 2px solid var(--warm);
+  border-top-color: var(--gold);
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+  margin: 0 auto 20px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-text {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 20px;
+  color: var(--ink2);
+  font-style: italic;
+}
+.loading-sub { font-size: 13px; color: var(--ink3); margin-top: 8px; }
+
+/* ── Results ── */
+.results-header {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  margin-bottom: 20px; flex-wrap: wrap; gap: 12px;
+}
+.results-header h2 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 28px; font-weight: 400;
+}
+.results-header h2 em { font-style: italic; color: var(--rose); }
+
+.place-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 24px;
+  margin-bottom: 14px;
+  transition: box-shadow 0.2s, transform 0.2s;
+  cursor: pointer;
+  position: relative;
+}
+.place-card:hover {
+  box-shadow: 0 6px 28px rgba(60,30,10,0.10);
+  transform: translateY(-2px);
+}
+.place-rank {
+  position: absolute; top: 20px; right: 20px;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 36px;
+  font-weight: 400;
+  color: var(--gold2);
+  line-height: 1;
+}
+.place-category {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 6px;
+}
+.place-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 24px;
+  font-weight: 500;
+  color: var(--ink);
+  margin-bottom: 6px;
+  padding-right: 44px;
+}
+.place-sub {
+  font-size: 13px;
+  color: var(--ink3);
+  margin-bottom: 12px;
+}
+.place-reason {
+  font-size: 14px;
+  color: var(--ink2);
+  margin-bottom: 14px;
+  line-height: 1.6;
+  font-style: italic;
+}
+.place-meta {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  margin-bottom: 16px;
+}
+.tag {
+  background: var(--dust);
+  border: 1px solid var(--border);
+  border-radius: 50px;
+  padding: 4px 12px;
+  font-size: 12px;
+  color: var(--ink2);
+}
+.tag.gold { background: #fff8ee; border-color: var(--gold2); color: var(--gold); }
+.tag.rose { background: #fff0ee; border-color: var(--rose2); color: var(--rose); }
+.tag.sage { background: #eef4f1; border-color: #a8c4b4; color: var(--sage); }
+
+.place-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.rating-row { display: flex; gap: 6px; align-items: center; margin-bottom: 10px; }
+.star-btn {
+  font-size: 22px; background: none; border: none; cursor: pointer;
+  transition: transform 0.15s;
+  color: var(--warm);
+}
+.star-btn:hover, .star-btn.lit { color: var(--gold); }
+.star-btn:hover { transform: scale(1.2); }
+
+/* ── Log ── */
+.log-empty {
+  text-align: center; padding: 60px 20px;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 22px; color: var(--ink3); font-style: italic;
+}
+.log-entry {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 20px 24px;
+  margin-bottom: 12px;
+}
+.log-entry-header {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  gap: 12px; flex-wrap: wrap;
+}
+.log-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 20px; font-weight: 500; color: var(--ink);
+}
+.log-date { font-size: 12px; color: var(--ink3); }
+.log-stars { color: var(--gold); font-size: 16px; }
+.log-notes { font-size: 13px; color: var(--ink2); margin-top: 8px; }
+.log-tags { margin-top: 10px; display: flex; gap: 6px; flex-wrap: wrap; }
+
+/* ── Add custom place modal ── */
+.modal-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(26,18,9,0.5);
+  z-index: 100; align-items: center; justify-content: center;
+  padding: 20px;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--card);
+  border-radius: var(--r);
+  padding: 32px;
+  max-width: 520px; width: 100%;
+  max-height: 90vh; overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(60,30,10,0.2);
+}
+.modal h3 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 24px; margin-bottom: 20px;
+}
+.modal-footer { display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end; }
+.close-btn {
+  position: absolute; top: 16px; right: 16px;
+  background: none; border: none; font-size: 20px;
+  cursor: pointer; color: var(--ink3);
+}
+
+/* ── Decorative divider ── */
+.divider {
+  text-align: center;
+  margin: 28px 0;
+  position: relative;
+}
+.divider::before {
+  content: '';
+  position: absolute; top: 50%; left: 0; right: 0;
+  height: 1px; background: var(--border);
+}
+.divider span {
+  position: relative;
+  background: var(--dust);
+  padding: 0 16px;
+  font-size: 13px; color: var(--ink3);
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+}
+
+/* ── Utilities ── */
+.flex { display: flex; }
+.gap-8 { gap: 8px; }
+.gap-12 { gap: 12px; }
+.mt-16 { margin-top: 16px; }
+.mt-24 { margin-top: 24px; }
+.text-sm { font-size: 13px; color: var(--ink3); }
+.text-center { text-align: center; }
+.full-w { width: 100%; }
+.hidden { display: none !important; }
+
+/* ── Map link ── */
+.map-link {
+  font-size: 12px; color: var(--sage); text-decoration: none;
+  display: inline-flex; align-items: center; gap: 4px;
+}
+.map-link:hover { text-decoration: underline; }
+
+/* ── Distance badge ── */
+.dist-badge {
+  font-size: 11px;
+  background: #eef4f1;
+  border: 1px solid #a8c4b4;
+  color: var(--sage);
+  border-radius: 50px;
+  padding: 3px 10px;
+}
+
+/* ── Visited badge ── */
+.visited-badge {
+  font-size: 11px;
+  background: #fff8ee;
+  border: 1px solid var(--gold2);
+  color: var(--gold);
+  border-radius: 50px;
+  padding: 3px 10px;
+}
+
+/* ── Context banner ── */
+.context-chips {
+  display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+}
+.ctx-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  border-radius: 50px; padding: 5px 12px;
+  font-size: 12px; font-weight: 500;
+  border: 1px solid var(--border);
+  background: var(--dust); color: var(--ink2);
+}
+.ctx-chip.hot  { border-color: var(--rose2); color: var(--rose); background: #fff0ee; }
+.ctx-chip.nice { border-color: #a8c4b4; color: var(--sage); background: #eef4f1; }
+.ctx-chip.warm { border-color: var(--gold2); color: var(--gold); background: #fff8ee; }
+.ctx-chip.late { border-color: var(--gold2); color: var(--gold); background: #fff8ee; }
+.ctx-chip.rain { border-color: #90a8c0; color: #4a6a8a; background: #eef2f8; }
+
+/* ── Date-time picker screen ── */
+#datetime-screen .dt-row {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px;
+}
+@media (max-width: 480px) { #datetime-screen .dt-row { grid-template-columns: 1fr; } }
+#datetime-screen input[type="date"],
+#datetime-screen input[type="time"] {
+  width: 100%; padding: 10px 12px; border-radius: 8px;
+  border: 1.5px solid var(--border); background: var(--cream);
+  font-family: 'DM Sans', sans-serif; font-size: 15px; color: var(--ink);
+  box-sizing: border-box; margin-top: 6px;
+}
+.loc-row { display: flex; gap: 8px; align-items: center; }
+.loc-row input { flex: 1; }
+.loc-coords { font-size: 11px; color: var(--sage); margin-top: 4px; min-height: 16px; }
+
+/* ── Multi-stop ── */
+.multistop-wrap { margin-top: 28px; }
+.multistop-wrap h3 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 22px; font-weight: 400; margin-bottom: 14px;
+}
+.multistop-wrap h3 em { font-style: italic; color: var(--rose); }
+.closes-tag {
+  font-size: 11px; background: #fff0ee; border: 1px solid var(--rose2);
+  color: var(--rose); border-radius: 50px; padding: 3px 10px;
+}
+.time-spent-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.time-chip {
+  background: var(--dust); border: 1.5px solid var(--border);
+  border-radius: 50px; padding: 6px 14px; font-size: 13px;
+  color: var(--ink2); cursor: pointer; transition: all 0.18s;
+  font-family: 'DM Sans', sans-serif;
+}
+.time-chip:hover { border-color: var(--gold2); background: var(--cream); }
+.time-chip.selected { border-color: var(--gold); background: #fff8ee; color: var(--ink); }
+</style>
+</head>
+<body>
+
+<div id="app">
+  <header>
+    <div class="wordmark">Dubai</div>
+    <h1>Where should we<br>go <em>tonight?</em></h1>
+    <p class="subtitle">Your personal date night curator</p>
+  </header>
+
+  <nav>
+    <button class="active" onclick="showTab('discover')">✦ Discover</button>
+    <button onclick="showTab('log')">♡ Our Log</button>
+    <button onclick="showTab('settings')">◎ Settings</button>
+  </nav>
+
+  <!-- ────────────────────────────────── DISCOVER ── -->
+  <section id="discover" class="active">
+
+    <!-- Context banner: weather + day -->
+    <div id="context-banner" class="card card-sm hidden" style="margin-bottom:16px">
+      <div class="context-chips" id="context-chips"></div>
+    </div>
+
+    <!-- Date / time picker (shown first) -->
+    <div id="datetime-screen">
+      <div class="card">
+        <div style="text-align:center;margin-bottom:24px">
+          <div style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:400">
+            When are you <em style="font-style:italic;color:var(--rose)">going?</em>
+          </div>
+          <p class="text-sm" style="margin-top:6px;color:var(--ink2)">We'll check the forecast and opening hours for your exact date &amp; time</p>
+        </div>
+        <div class="dt-row">
+          <div>
+            <div class="field-label">Date</div>
+            <input type="date" id="plan-date">
+          </div>
+          <div>
+            <div class="field-label">Time you're heading out</div>
+            <input type="time" id="plan-time" step="1800">
+          </div>
+        </div>
+        <button class="btn btn-primary" style="width:100%;padding:14px" onclick="confirmDateTime()">Plan our date →</button>
+      </div>
+    </div>
+
+    <!-- Quiz flow -->
+    <div id="quiz-wrap" class="hidden">
+      <div class="card">
+        <div id="quiz-progress" class="quiz-progress"></div>
+        <div id="quiz-body"></div>
+        <div class="quiz-nav">
+          <button class="btn btn-outline btn-sm" id="quiz-back" onclick="quizBack()">← Back</button>
+          <span class="step-indicator" id="step-label"></span>
+          <button class="btn btn-primary btn-sm" id="quiz-next" onclick="quizNext()">Next →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading -->
+    <div id="loading-wrap" class="hidden">
+      <div class="card loading-screen">
+        <div class="spinner"></div>
+        <div class="loading-text" id="loading-text">Curating your evening…</div>
+        <div class="loading-sub">Weighing your preferences against 500+ Dubai spots</div>
+      </div>
+    </div>
+
+    <!-- Results -->
+    <div id="results-wrap" class="hidden">
+      <div class="results-header">
+        <div>
+          <h2>Tonight's <em>top picks</em></h2>
+          <p class="text-sm" id="results-summary"></p>
+        </div>
+        <button class="btn btn-outline btn-sm" onclick="resetQuiz()">Start over</button>
+      </div>
+      <div id="results-list"></div>
+    </div>
+
+  </section>
+
+  <!-- ────────────────────────────────── LOG ── -->
+  <section id="log">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px">
+      <div>
+        <h2 style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:400">Our <em style="font-style:italic;color:var(--rose)">adventures</em></h2>
+        <p class="text-sm" id="log-summary-text"></p>
+      </div>
+      <button class="btn btn-outline btn-sm" onclick="openAddModal()">+ Add place</button>
+    </div>
+    <div id="log-list"></div>
+  </section>
+
+  <!-- ────────────────────────────────── SETTINGS ── -->
+  <section id="settings">
+    <h2 style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:400;margin-bottom:20px">Your <em style="font-style:italic;color:var(--rose)">details</em></h2>
+
+    <div class="card" style="margin-bottom:20px">
+      <div class="settings-grid">
+        <div>
+          <div class="field-label">Your location</div>
+          <div class="loc-row">
+            <input type="text" id="s-your-area" placeholder="e.g. Dubai Marina">
+            <button class="btn btn-outline btn-sm" onclick="detectLocation('your')" title="Use GPS">📍</button>
+          </div>
+          <div class="loc-coords" id="s-your-coords"></div>
+        </div>
+        <div>
+          <div class="field-label">Her location</div>
+          <div class="loc-row">
+            <input type="text" id="s-her-area" placeholder="e.g. Business Bay">
+            <button class="btn btn-outline btn-sm" onclick="detectLocation('her')" title="Use GPS">📍</button>
+          </div>
+          <div class="loc-coords" id="s-her-coords"></div>
+        </div>
+        <div>
+          <div class="field-label">Anthropic API Key</div>
+          <input type="text" id="s-api-key" placeholder="sk-ant-…" value="">
+          <div class="text-sm" style="margin-top:6px">Stored locally only, never sent anywhere else</div>
+        </div>
+        <div>
+          <div class="field-label">Default vibe</div>
+          <select id="s-default-vibe">
+            <option value="">No preference</option>
+            <option value="romantic">Romantic & intimate</option>
+            <option value="adventurous">Adventurous</option>
+            <option value="chill">Chill & relaxed</option>
+            <option value="cultural">Cultural</option>
+            <option value="outdoors">Outdoors</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:20px">
+      <div class="field-label" style="margin-bottom:12px">Personal notes (dietary, preferences, dislikes…)</div>
+      <textarea id="s-notes" placeholder="e.g. She's vegetarian. I don't drink alcohol. We prefer outdoor settings when weather allows. Budget usually AED 200–400 total."></textarea>
+    </div>
+
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn btn-gold" onclick="saveSettings()">Save settings</button>
+      <span id="settings-saved" class="text-sm hidden" style="align-self:center;color:var(--sage)">✓ Saved</span>
+    </div>
+
+    <div class="divider" style="margin-top:32px"><span>Places database</span></div>
+
+    <div class="card card-sm">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+        <div>
+          <div style="font-weight:500">Dubai places DB</div>
+          <div class="text-sm"><span id="db-count">0</span> places loaded &nbsp;·&nbsp; <span id="db-cats"></span></div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <label class="btn btn-outline btn-sm" style="cursor:pointer">
+            Import JSON <input type="file" accept=".json" class="hidden" onchange="importDB(event)">
+          </label>
+          <button class="btn btn-outline btn-sm" onclick="exportDB()">Export JSON</button>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ────────────────────────────────── ADD PLACE MODAL ── -->
+<div class="modal-overlay" id="add-modal">
+  <div class="modal">
+    <h3>Add a place</h3>
+    <p class="text-sm" style="margin-bottom:20px">Log a new spot you discovered or want to try</p>
+
+    <div style="display:grid;gap:14px">
+      <div>
+        <div class="field-label">Name *</div>
+        <input type="text" id="m-name" placeholder="Atmosphere Lounge">
+      </div>
+      <div class="settings-grid">
+        <div>
+          <div class="field-label">Category</div>
+          <select id="m-category">
+            <option>Dining</option>
+            <option>Outdoor</option>
+            <option>Arts & Culture</option>
+            <option>Entertainment</option>
+            <option>Wellness</option>
+            <option>Shopping</option>
+            <option>Sports</option>
+            <option>Views</option>
+            <option>Experience</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div>
+          <div class="field-label">Subcategory</div>
+          <input type="text" id="m-sub" placeholder="Fine Dining, Beach…">
+        </div>
+        <div>
+          <div class="field-label">Price level</div>
+          <select id="m-price">
+            <option value="">Unknown</option>
+            <option>Free</option>
+            <option>Budget (&lt; AED 50pp)</option>
+            <option>Moderate (AED 50–150pp)</option>
+            <option>Expensive (AED 150–300pp)</option>
+            <option>Luxury (AED 300+pp)</option>
+          </select>
+        </div>
+        <div>
+          <div class="field-label">Area / neighbourhood</div>
+          <input type="text" id="m-area" placeholder="Dubai Marina">
+        </div>
+      </div>
+      <div>
+        <div class="field-label">Notes</div>
+        <textarea id="m-notes" placeholder="Why you like it, what to order, tips…" style="min-height:60px"></textarea>
+      </div>
+      <div>
+        <div class="field-label">Rating (1–5 stars)</div>
+        <div class="rating-row" id="m-rating-row">
+          <button class="star-btn" onclick="setModalRating(1)">★</button>
+          <button class="star-btn" onclick="setModalRating(2)">★</button>
+          <button class="star-btn" onclick="setModalRating(3)">★</button>
+          <button class="star-btn" onclick="setModalRating(4)">★</button>
+          <button class="star-btn" onclick="setModalRating(5)">★</button>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <input type="checkbox" id="m-visited" style="width:auto">
+        <label for="m-visited" style="font-size:14px">We've already been here</label>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-outline btn-sm" onclick="closeAddModal()">Cancel</button>
+      <button class="btn btn-gold btn-sm" onclick="saveCustomPlace()">Save place</button>
+    </div>
+  </div>
+</div>
+
+<!-- ────────────────────────────────── LOG ENTRY MODAL ── -->
+<div class="modal-overlay" id="log-modal">
+  <div class="modal">
+    <h3 id="lm-title"></h3>
+    <div style="display:grid;gap:14px">
+      <div>
+        <div class="field-label">How was it?</div>
+        <div class="rating-row" id="lm-rating-row">
+          <button class="star-btn" onclick="setLogRating(1)">★</button>
+          <button class="star-btn" onclick="setLogRating(2)">★</button>
+          <button class="star-btn" onclick="setLogRating(3)">★</button>
+          <button class="star-btn" onclick="setLogRating(4)">★</button>
+          <button class="star-btn" onclick="setLogRating(5)">★</button>
+        </div>
+      </div>
+      <div>
+        <div class="field-label">Time spent here</div>
+        <div class="time-spent-row" id="lm-time-row">
+          <button class="time-chip" onclick="setTimeSpent('~1 hr',this)">~1 hr</button>
+          <button class="time-chip" onclick="setTimeSpent('~2 hrs',this)">~2 hrs</button>
+          <button class="time-chip" onclick="setTimeSpent('~3 hrs',this)">~3 hrs</button>
+          <button class="time-chip" onclick="setTimeSpent('4+ hrs',this)">4+ hrs</button>
+        </div>
+      </div>
+      <div>
+        <div class="field-label">Notes & memories</div>
+        <textarea id="lm-notes" placeholder="What did you love? What would you do differently?"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline btn-sm" onclick="closeLogModal()">Cancel</button>
+      <button class="btn btn-gold btn-sm" onclick="saveLogEntry()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════════
+   STATE & STORAGE
+═══════════════════════════════════════════════════════════════════════ */
+
+const STORAGE_KEYS = {
+  settings: 'datenite_settings',
+  log:      'datenite_log',
+  db:       'datenite_db',
+  custom:   'datenite_custom',
+};
+
+function load(key) {
+  try { return JSON.parse(localStorage.getItem(key)) || null; }
+  catch { return null; }
+}
+function save(key, val) {
+  localStorage.setItem(key, JSON.stringify(val));
+}
+
+let settings = load(STORAGE_KEYS.settings) || {
+  yourArea: 'Dubai Marina', yourLat: null, yourLng: null,
+  herArea:  'Business Bay', herLat: null,  herLng: null,
+  apiKey:   '', defaultVibe: '', notes: '',
+};
+
+let visitLog  = load(STORAGE_KEYS.log)    || [];
+let customDB  = load(STORAGE_KEYS.custom) || [];
+
+/* ── Embedded places DB (seed data — import your collected JSON to replace)
+   This is a representative curated set; importing the Python script output
+   replaces these with 500+ live Google Places results.                   ── */
+let placesDB = load(STORAGE_KEYS.db) || [
+  // Dining – Fine Dining
+  { id:'d1', name:'Nobu Dubai', category:'Dining', subcategory:'Fine Dining', address:'Atlantis The Palm', area:'Palm Jumeirah', lat:25.130, lng:55.117, rating:4.6, price_level:'Luxury (AED 300+pp)', summary:'Iconic Japanese-Peruvian fusion by chef Nobu Matsuhisa', outdoor_seating:false },
+  { id:'d2', name:'Zuma Dubai', category:'Dining', subcategory:'Fine Dining', address:'Gate Village, DIFC', area:'DIFC', lat:25.211, lng:55.283, rating:4.7, price_level:'Luxury (AED 300+pp)', summary:'Contemporary Japanese izakaya in a stunning space', outdoor_seating:false },
+  { id:'d3', name:'Pierchic', category:'Dining', subcategory:'Waterfront', address:'Al Qasr Hotel, Madinat Jumeirah', area:'Jumeirah', lat:25.135, lng:55.185, rating:4.5, price_level:'Luxury (AED 300+pp)', summary:'Seafood restaurant on a pier with Burj Al Arab views', outdoor_seating:true },
+  { id:'d4', name:'Atmosphere', category:'Dining', subcategory:'Fine Dining', address:'Burj Khalifa 122nd Floor', area:'Downtown', lat:25.197, lng:55.274, rating:4.5, price_level:'Luxury (AED 300+pp)', summary:'World\'s highest restaurant with panoramic city views', outdoor_seating:false },
+  { id:'d5', name:'La Petite Maison', category:'Dining', subcategory:'Fine Dining', address:'DIFC', area:'DIFC', lat:25.212, lng:55.284, rating:4.5, price_level:'Expensive (AED 150–300pp)', summary:'Elegant Niçoise cuisine in the heart of the financial district', outdoor_seating:true },
+  { id:'d6', name:'Netsu', category:'Dining', subcategory:'Japanese', address:'Mandarin Oriental Jumeira', area:'Jumeirah', lat:25.224, lng:55.247, rating:4.6, price_level:'Expensive (AED 150–300pp)', summary:'Modern Japanese robatayaki and sushi', outdoor_seating:false },
+  { id:'d7', name:'Ossiano', category:'Dining', subcategory:'Fine Dining', address:'Atlantis The Palm', area:'Palm Jumeirah', lat:25.130, lng:55.117, rating:4.7, price_level:'Luxury (AED 300+pp)', summary:'Magical undersea dining next to a 65,000-fish aquarium', outdoor_seating:false },
+
+  // Dining – Rooftop / Views
+  { id:'d8', name:'Iris Dubai', category:'Dining', subcategory:'Rooftop', address:'Meydan Hotel', area:'Meydan', lat:25.166, lng:55.300, rating:4.3, price_level:'Expensive (AED 150–300pp)', summary:'Rooftop bar and restaurant with racecourse views', outdoor_seating:true },
+  { id:'d9', name:'Level 43 Sky Lounge', category:'Dining', subcategory:'Rooftop', address:'Four Points by Sheraton, Sheikh Zayed Road', area:'Sheikh Zayed Road', lat:25.218, lng:55.275, rating:4.3, price_level:'Moderate (AED 50–150pp)', summary:'Panoramic 360° views over Dubai skyline', outdoor_seating:true },
+  { id:'d10', name:'Ce La Vi', category:'Dining', subcategory:'Rooftop', address:'Address Sky View Hotel, Downtown', area:'Downtown', lat:25.196, lng:55.272, rating:4.4, price_level:'Expensive (AED 150–300pp)', summary:'Sky-high bar with Burj Khalifa views, infinity pool backdrop', outdoor_seating:true },
+
+  // Dining – Casual & Mid-range
+  { id:'d11', name:'Comptoir 102', category:'Dining', subcategory:'Cafe', address:'Jumeirah Beach Road', area:'Jumeirah', lat:25.224, lng:55.245, rating:4.4, price_level:'Moderate (AED 50–150pp)', summary:'Bohemian concept store cafe with healthy, organic food', outdoor_seating:true },
+  { id:'d12', name:'The Brunch & Cake', category:'Dining', subcategory:'Brunch', address:'Multiple locations, Dubai', area:'Dubai', lat:25.207, lng:55.265, rating:4.4, price_level:'Moderate (AED 50–150pp)', summary:'Charming European-style brunch spot', outdoor_seating:true },
+  { id:'d13', name:'Arabia Tea House', category:'Dining', subcategory:'Cafe', address:'Al Fahidi Historical District', area:'Bur Dubai', lat:25.263, lng:55.299, rating:4.5, price_level:'Budget (< AED 50pp)', summary:'Atmospheric courtyard cafe in a heritage building', outdoor_seating:true },
+  { id:'d14', name:'Al Fanar Restaurant', category:'Dining', subcategory:'Middle Eastern', address:'Festival City Mall', area:'Festival City', lat:25.224, lng:55.352, rating:4.4, price_level:'Moderate (AED 50–150pp)', summary:'Traditional Emirati cuisine in a nostalgic setting', outdoor_seating:false },
+  { id:'d15', name:'Shish Shawarma', category:'Dining', subcategory:'Middle Eastern', address:'Jumeirah Beach Road', area:'Jumeirah', lat:25.220, lng:55.250, rating:4.5, price_level:'Budget (< AED 50pp)', summary:'Legendary Dubai shawarma institution since 1993', outdoor_seating:false },
+
+  // Dining – Shisha
+  { id:'d16', name:'Shimmers Beach Cafe', category:'Dining', subcategory:'Shisha Lounge', address:'Jumeirah Mina Al Salam', area:'Jumeirah', lat:25.143, lng:55.183, rating:4.4, price_level:'Moderate (AED 50–150pp)', summary:'Beachfront shisha with Burj Al Arab views at sunset', outdoor_seating:true },
+  { id:'d17', name:'QD\'s Restaurant', category:'Dining', subcategory:'Shisha Lounge', address:'Dubai Creek Golf Club', area:'Deira', lat:25.247, lng:55.327, rating:4.3, price_level:'Moderate (AED 50–150pp)', summary:'Riverside shisha with Creek dhow views', outdoor_seating:true },
+
+  // Outdoor & Nature
+  { id:'o1', name:'Kite Beach', category:'Outdoor', subcategory:'Beach', address:'Umm Suqeim', area:'Jumeirah', lat:25.159, lng:55.202, rating:4.5, price_level:'Free', summary:'Popular beach with boardwalk, food trucks and watersports', outdoor_seating:true },
+  { id:'o2', name:'La Mer Beach', category:'Outdoor', subcategory:'Beach', address:'Jumeirah 1', area:'Jumeirah', lat:25.232, lng:55.258, rating:4.4, price_level:'Free', summary:'Trendy beachside lifestyle destination with shops and restaurants', outdoor_seating:true },
+  { id:'o3', name:'JBR The Walk', category:'Outdoor', subcategory:'Waterfront Walk', address:'Jumeirah Beach Residence', area:'JBR', lat:25.078, lng:55.136, rating:4.4, price_level:'Free', summary:'1.7km beachfront promenade lined with restaurants and shops', outdoor_seating:true },
+  { id:'o4', name:'Dubai Creek Kayaking', category:'Outdoor', subcategory:'Watersports', address:'Deira', area:'Deira', lat:25.270, lng:55.310, rating:4.5, price_level:'Moderate (AED 50–150pp)', summary:'Kayak along the historic Dubai Creek at sunset', outdoor_seating:true },
+  { id:'o5', name:'Al Qudra Lakes', category:'Outdoor', subcategory:'Nature', address:'Al Qudra Road, Dubai', area:'Al Qudra', lat:24.989, lng:55.228, rating:4.6, price_level:'Free', summary:'Man-made lakes in the desert – flamingos, picnics, stargazing', outdoor_seating:true },
+  { id:'o6', name:'Dubai Miracle Garden', category:'Outdoor', subcategory:'Park', address:'Al Barsha South', area:'Dubailand', lat:25.059, lng:55.243, rating:4.4, price_level:'Moderate (AED 50–150pp)', summary:'World\'s largest natural flower garden (Oct–Apr)', outdoor_seating:true },
+  { id:'o7', name:'Hatta Mountain Trail', category:'Outdoor', subcategory:'Hiking', address:'Hatta, Dubai', area:'Hatta', lat:24.793, lng:56.117, rating:4.7, price_level:'Free', summary:'Stunning Hajar Mountain hikes, wadis, and emerald pools', outdoor_seating:true },
+  { id:'o8', name:'Sunset at the Palm Crescent', category:'Outdoor', subcategory:'Sunset Spot', address:'Palm Jumeirah Crescent', area:'Palm Jumeirah', lat:25.118, lng:55.141, rating:4.6, price_level:'Free', summary:'Quiet crescent road facing west – spectacular sunsets', outdoor_seating:true },
+
+  // Arts & Culture
+  { id:'c1', name:'Alserkal Avenue', category:'Arts & Culture', subcategory:'Gallery', address:'Al Quoz', area:'Al Quoz', lat:25.148, lng:55.221, rating:4.5, price_level:'Free', summary:'Dubai\'s arts district with 60+ galleries, studios and cafes', outdoor_seating:false },
+  { id:'c2', name:'Dubai Museum', category:'Arts & Culture', subcategory:'Museum', address:'Al Fahidi Fort, Bur Dubai', area:'Bur Dubai', lat:25.263, lng:55.299, rating:4.4, price_level:'Budget (< AED 50pp)', summary:'The emirate\'s oldest building housing Dubai history', outdoor_seating:false },
+  { id:'c3', name:'Al Fahidi Historical Neighbourhood', category:'Arts & Culture', subcategory:'Historic District', address:'Bur Dubai', area:'Bur Dubai', lat:25.263, lng:55.299, rating:4.6, price_level:'Free', summary:'Preserved 19th-century wind tower district with art galleries', outdoor_seating:false },
+  { id:'c4', name:'Dubai Frame', category:'Arts & Culture', subcategory:'Museum', address:'Zabeel Park', area:'Zabeel', lat:25.235, lng:55.300, rating:4.4, price_level:'Moderate (AED 50–150pp)', summary:'Iconic frame structure connecting old and new Dubai', outdoor_seating:false },
+  { id:'c5', name:'Louvre Abu Dhabi (Day Trip)', category:'Arts & Culture', subcategory:'Museum', address:'Saadiyat Island, Abu Dhabi', area:'Abu Dhabi', lat:24.533, lng:54.398, rating:4.8, price_level:'Moderate (AED 50–150pp)', summary:'World-class art museum under a magical latticed dome', outdoor_seating:false },
+
+  // Entertainment
+  { id:'e1', name:'Roxy Cinemas City Walk', category:'Entertainment', subcategory:'Cinema', address:'City Walk, Al Wasl', area:'City Walk', lat:25.206, lng:55.255, rating:4.5, price_level:'Moderate (AED 50–150pp)', summary:'Boutique cinema with luxury recliners and IMAX', outdoor_seating:false },
+  { id:'e2', name:'Boom Battle Bar', category:'Entertainment', subcategory:'Arcade', address:'BoxPark, Al Wasl', area:'City Walk', lat:25.207, lng:55.258, rating:4.3, price_level:'Moderate (AED 50–150pp)', summary:'Games bar with crazy golf, axe throwing, shuffleboard', outdoor_seating:false },
+  { id:'e3', name:'iFly Dubai', category:'Entertainment', subcategory:'Skydiving', address:'Mall of the Emirates', area:'Al Barsha', lat:25.119, lng:55.200, rating:4.6, price_level:'Expensive (AED 150–300pp)', summary:'Indoor skydiving – weightless freefall with an instructor', outdoor_seating:false },
+  { id:'e4', name:'Escape Hunt Dubai', category:'Entertainment', subcategory:'Escape Room', address:'DIFC', area:'DIFC', lat:25.211, lng:55.283, rating:4.4, price_level:'Moderate (AED 50–150pp)', summary:'Award-winning escape room experiences for couples', outdoor_seating:false },
+  { id:'e5', name:'Dubai Ice Rink', category:'Entertainment', subcategory:'Ice Skating', address:'Dubai Mall, Downtown', area:'Downtown', lat:25.198, lng:55.279, rating:4.4, price_level:'Moderate (AED 50–150pp)', summary:'Olympic-size ice rink inside the Dubai Mall', outdoor_seating:false },
+  { id:'e6', name:'Ski Dubai', category:'Entertainment', subcategory:'Skiing', address:'Mall of the Emirates', area:'Al Barsha', lat:25.118, lng:55.200, rating:4.4, price_level:'Expensive (AED 150–300pp)', summary:'Indoor ski slope in the desert with penguins', outdoor_seating:false },
+  { id:'e7', name:'Virtuocity', category:'Entertainment', subcategory:'Arcade', address:'Al Ghurair Centre, Deira', area:'Deira', lat:25.267, lng:55.322, rating:4.2, price_level:'Moderate (AED 50–150pp)', summary:'VR gaming and entertainment experiences', outdoor_seating:false },
+
+  // Experiences
+  { id:'x1', name:'Dubai Dhow Cruise', category:'Experience', subcategory:'Dhow Cruise', address:'Dubai Creek or Marina', area:'Creek / Marina', lat:25.261, lng:55.318, rating:4.4, price_level:'Moderate (AED 50–150pp)', summary:'Traditional wooden boat dinner cruise through glittering Dubai', outdoor_seating:true },
+  { id:'x2', name:'Hot Air Balloon over Desert', category:'Experience', subcategory:'Hot Air Balloon', address:'Desert, Dubai', area:'Desert', lat:24.97, lng:55.27, rating:4.8, price_level:'Luxury (AED 300+pp)', summary:'Sunrise balloon flight over the Hajar Mountains and dunes', outdoor_seating:true },
+  { id:'x3', name:'Stargazing at Al Qudra', category:'Experience', subcategory:'Stargazing', address:'Al Qudra Lakes', area:'Al Qudra', lat:24.989, lng:55.228, rating:4.7, price_level:'Free', summary:'Zero light pollution – set up a mat and gaze at the Milky Way', outdoor_seating:true },
+  { id:'x4', name:'Pottery Class at Kara Lounge', category:'Experience', subcategory:'Pottery', address:'Jumeirah', area:'Jumeirah', lat:25.220, lng:55.252, rating:4.6, price_level:'Moderate (AED 50–150pp)', summary:'Create pottery together in a romantic studio setting', outdoor_seating:false },
+  { id:'x5', name:'Camel Riding at Bab Al Shams', category:'Experience', subcategory:'Desert', address:'Bab Al Shams Resort', area:'Desert', lat:24.850, lng:55.143, rating:4.5, price_level:'Expensive (AED 150–300pp)', summary:'Camel ride at sunset from a classic desert resort', outdoor_seating:true },
+  { id:'x6', name:'Dubai Fountain Show', category:'Experience', subcategory:'Views', address:'Dubai Mall, Downtown', area:'Downtown', lat:25.195, lng:55.274, rating:4.7, price_level:'Free', summary:'The world\'s largest choreographed fountain – nightly at 6pm', outdoor_seating:true },
+  { id:'x7', name:'Sunset Felucca Cruise (Abu Dhabi)', category:'Experience', subcategory:'Boat Tour', address:'Corniche, Abu Dhabi', area:'Abu Dhabi', lat:24.465, lng:54.316, rating:4.6, price_level:'Moderate (AED 50–150pp)', summary:'Sail a traditional Egyptian felucca along the Abu Dhabi Corniche', outdoor_seating:true },
+  { id:'x8', name:'Cooking Class at Cook\'s Academy', category:'Experience', subcategory:'Cooking Class', address:'Meadows Town Centre', area:'Meadows', lat:25.097, lng:55.163, rating:4.6, price_level:'Expensive (AED 150–300pp)', summary:'Cook a 4-course meal together with a professional chef', outdoor_seating:false },
+
+  // Views
+  { id:'v1', name:'Burj Khalifa At the Top', category:'Views', subcategory:'Observation Deck', address:'Downtown Dubai', area:'Downtown', lat:25.197, lng:55.274, rating:4.6, price_level:'Expensive (AED 150–300pp)', summary:'Observation deck on floor 124/148 – the world\'s tallest building', outdoor_seating:false },
+  { id:'v2', name:'Museum of the Future', category:'Views', subcategory:'Iconic Landmark', address:'Sheikh Zayed Road', area:'Sheikh Zayed Road', lat:25.222, lng:55.278, rating:4.6, price_level:'Expensive (AED 150–300pp)', summary:'Visionary architecture and immersive future exhibitions', outdoor_seating:false },
+  { id:'v3', name:'Dubai Marina Promenade', category:'Views', subcategory:'Waterfront Walk', address:'Dubai Marina', area:'Dubai Marina', lat:25.083, lng:55.140, rating:4.5, price_level:'Free', summary:'7km marina walk lined with cafes, yachts, and city lights', outdoor_seating:true },
+
+  // Wellness
+  { id:'w1', name:'Talise Ottoman Spa', category:'Wellness', subcategory:'Hammam', address:'Jumeirah Zabeel Saray, Palm', area:'Palm Jumeirah', lat:25.126, lng:55.126, rating:4.7, price_level:'Luxury (AED 300+pp)', summary:'Grand Ottoman-style spa with signature hammam and couple\'s suite', outdoor_seating:false },
+  { id:'w2', name:'Amara Spa', category:'Wellness', subcategory:'Spa', address:'Park Hyatt Dubai', area:'Deira', lat:25.243, lng:55.336, rating:4.6, price_level:'Expensive (AED 150–300pp)', summary:'Poolside spa sanctuary in a beautiful creekside setting', outdoor_seating:true },
+  { id:'w3', name:'ShuiQi Spa', category:'Wellness', subcategory:'Spa', address:'Atlantis The Palm', area:'Palm Jumeirah', lat:25.130, lng:55.117, rating:4.5, price_level:'Expensive (AED 150–300pp)', summary:'Iconic spa with couples\' rooms overlooking the Palm', outdoor_seating:false },
+];
+
+/* ═══════════════════════════════════════════════════════════════════════
+   QUIZ FLOW
+═══════════════════════════════════════════════════════════════════════ */
+
+const QUESTIONS = [
+  {
+    id: 'vibe',
+    q: 'What\'s the <em>vibe</em> tonight?',
+    type: 'single',
+    opts: [
+      { icon:'🕯️', label:'Romantic & intimate', val:'romantic' },
+      { icon:'🎉', label:'Fun & energetic', val:'fun' },
+      { icon:'🌿', label:'Chill & relaxed', val:'chill' },
+      { icon:'🎭', label:'Cultural & artsy', val:'cultural' },
+      { icon:'🏄', label:'Active & adventurous', val:'adventurous' },
+      { icon:'✨', label:'Surprise me', val:'any' },
+    ]
+  },
+  {
+    id: 'setting',
+    q: 'Indoor or <em>outdoor?</em>',
+    type: 'single',
+    opts: [
+      { icon:'🌙', label:'Indoors', val:'indoor' },
+      { icon:'🌴', label:'Outdoors', val:'outdoor' },
+      { icon:'🌤️', label:'No preference', val:'any' },
+    ]
+  },
+  {
+    id: 'budget',
+    q: 'What\'s the <em>budget</em> for tonight?',
+    type: 'single',
+    opts: [
+      { icon:'💸', label:'Budget friendly', val:'budget' },
+      { icon:'💰', label:'Mid-range (AED 50–150pp)', val:'mid' },
+      { icon:'✨', label:'Splurge (AED 150–300pp)', val:'high' },
+      { icon:'🥂', label:'Luxury (AED 300+pp)', val:'luxury' },
+    ]
+  },
+  {
+    id: 'category',
+    q: 'Any particular <em>type</em> of date?',
+    type: 'multi',
+    opts: [
+      { icon:'🍽️', label:'Dining', val:'Dining' },
+      { icon:'🎨', label:'Arts & Culture', val:'Arts & Culture' },
+      { icon:'🎭', label:'Entertainment', val:'Entertainment' },
+      { icon:'🌿', label:'Outdoors', val:'Outdoor' },
+      { icon:'✨', label:'Experience', val:'Experience' },
+      { icon:'🧘', label:'Wellness', val:'Wellness' },
+      { icon:'🏔️', label:'Sports & Activity', val:'Sports' },
+      { icon:'🌆', label:'Views & Landmarks', val:'Views' },
+      { icon:'🎲', label:'Open to anything', val:'any' },
+    ]
+  },
+  {
+    id: 'proximity',
+    q: 'How far are you willing to <em>travel?</em>',
+    type: 'single',
+    opts: [
+      { icon:'🚶', label:'Close by (same neighbourhood)', val:'close' },
+      { icon:'🚗', label:'Up to 30 min drive', val:'medium' },
+      { icon:'🗺️', label:'Anywhere in Dubai', val:'dubai' },
+      { icon:'✈️', label:'Day trip is fine (Abu Dhabi/Hatta)', val:'daytrip' },
+    ]
+  },
+  {
+    id: 'duration',
+    q: 'How long do you want to <em>stay out?</em>',
+    type: 'single',
+    opts: [
+      { icon:'⚡', label:'Quick outing (2 hrs)', val:'2' },
+      { icon:'🌙', label:'A few hours (3–4 hrs)', val:'3.5' },
+      { icon:'🌟', label:'Full evening (5+ hrs)', val:'5' },
+      { icon:'🎲', label:'No rush — flexible', val:'flex' },
+    ]
+  },
+];
+
+let quizStep  = 0;
+let answers   = {};
+let datePlan  = null; // { date: Date, hour: number }
+let pendingLogPlace = null;
+let pendingLogRating = 0;
+let pendingLogTimeSpent = '';
+let modalRating = 0;
+
+// ── Live context ──
+let weatherCtx = null;  // { temp, code, humidity, isHot, isRain, isGoodOutdoor, label, icon }
+let dayCtx     = null;  // { name, index, isLateOk, suggestedEndHour, endLabel }
+
+/* ── Date / time picker confirmation ── */
+function confirmDateTime() {
+  const dateVal = document.getElementById('plan-date').value;
+  const timeVal = document.getElementById('plan-time').value;
+  if (!dateVal || !timeVal) {
+    document.getElementById('plan-date').style.borderColor = dateVal ? 'var(--border)' : 'var(--rose)';
+    document.getElementById('plan-time').style.borderColor = timeVal ? 'var(--border)' : 'var(--rose)';
+    return;
+  }
+  const [h, m] = timeVal.split(':').map(Number);
+  datePlan = { date: new Date(dateVal + 'T00:00:00'), hour: h + m / 60 };
+  buildDayContext(datePlan.date, datePlan.hour);
+  fetchWeather(datePlan.date, Math.floor(datePlan.hour));
+  document.getElementById('datetime-screen').classList.add('hidden');
+  document.getElementById('quiz-wrap').classList.remove('hidden');
+  renderQuiz();
+}
+
+/* ── Day / time context ── */
+function buildDayContext(date, hour) {
+  const d    = date || new Date();
+  const now  = new Date(d);
+  if (hour != null) now.setHours(Math.floor(hour), Math.round((hour % 1) * 60), 0, 0);
+  const day  = d.getDay(); // 0=Sun…6=Sat
+  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const isLateOk       = day === 4 || day === 5 || day === 6;
+  const suggestedEndHour = day === 5 || day === 6 ? 2 : day === 4 ? 0 : 23;
+  const endLabel = day === 5 || day === 6 ? 'can stay until 2am'
+                 : day === 4              ? 'can stay until midnight'
+                 :                         'early night (work tomorrow)';
+  dayCtx = { name: days[day], index: day, isLateOk, suggestedEndHour, endLabel, now };
+}
+
+/* ── Weather fetch (Open-Meteo hourly forecast for planned date/hour) ── */
+async function fetchWeather(date, hour) {
+  try {
+    const d   = date || new Date();
+    const iso = d.toISOString().slice(0, 10); // YYYY-MM-DD
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=25.2048&longitude=55.2708` +
+                `&hourly=temperature_2m,weathercode,relativehumidity_2m` +
+                `&timezone=Asia%2FDubai&start_date=${iso}&end_date=${iso}`;
+    const r = await fetch(url);
+    if (!r.ok) return;
+    const json = await r.json();
+    const idx  = Math.min(Math.max(Math.round(hour ?? new Date().getHours()), 0), 23);
+    const temp = Math.round(json.hourly.temperature_2m[idx]);
+    const code = json.hourly.weathercode[idx];
+    const hum  = json.hourly.relativehumidity_2m[idx];
+    const isRain = code >= 61;  // 61+ = actual rain (51-55 = drizzle, ignored for Dubai)
+    const isHot  = temp >= 35;
+    const isWarm = temp >= 30 && temp < 35;
+    const isGoodOutdoor = !isRain && temp < 30;
+    let wIcon, wLabel;
+    if (isRain)     { wIcon = '🌧️'; wLabel = `Rainy · ${temp}°C`; }
+    else if (isHot) { wIcon = '🌡️'; wLabel = `Hot · ${temp}°C`; }
+    else if (isWarm){ wIcon = '☀️'; wLabel = `Warm · ${temp}°C`; }
+    else            { wIcon = '🌤️'; wLabel = `${temp}°C · pleasant`; }
+    weatherCtx = { temp, code, humidity: hum, isHot, isWarm, isRain, isGoodOutdoor, label: wLabel, icon: wIcon };
+  } catch(e) { /* silent fail */ }
+  updateContextBanner();
+}
+
+/* ── Update the context banner ── */
+function updateContextBanner() {
+  const banner = document.getElementById('context-banner');
+  const chips  = document.getElementById('context-chips');
+  if (!dayCtx && !weatherCtx) { banner.classList.add('hidden'); return; }
+
+  let html = '';
+
+  if (dayCtx) {
+    const h = datePlan ? Math.floor(datePlan.hour) : new Date().getHours();
+    const mn = datePlan ? Math.round((datePlan.hour % 1) * 60) : new Date().getMinutes();
+    const timeStr = `${String(h).padStart(2,'0')}:${String(mn).padStart(2,'0')}`;
+    const dateStr = datePlan
+      ? datePlan.date.toLocaleDateString('en-GB', { day:'numeric', month:'short' })
+      : '';
+    html += `<span class="ctx-chip">📅 ${dayCtx.name}${dateStr ? ' ' + dateStr : ''} · ${timeStr}</span>`;
+    const cls = dayCtx.isLateOk ? 'late' : '';
+    html += `<span class="ctx-chip ${cls}">🕰 ${dayCtx.endLabel}</span>`;
+  }
+  if (weatherCtx) {
+    const cls = weatherCtx.isRain ? 'rain' : weatherCtx.isHot ? 'hot' : weatherCtx.isGoodOutdoor ? 'nice' : 'warm';
+    html += `<span class="ctx-chip ${cls}">${weatherCtx.icon} ${weatherCtx.label}</span>`;
+    if (weatherCtx.isRain)
+      html += `<span class="ctx-chip rain">🏠 Outdoor spots hidden</span>`;
+    else if (weatherCtx.isHot)
+      html += `<span class="ctx-chip hot">🔥 Outdoor spots ranked lower</span>`;
+    else if (weatherCtx.isGoodOutdoor)
+      html += `<span class="ctx-chip nice">🌿 Great night for outdoors</span>`;
+  }
+
+  chips.innerHTML = html;
+  banner.classList.remove('hidden');
+}
+
+/* ── Opening-hours helpers ── */
+function parseHours(str) {
+  if (!str || str === 'Closed') return null;
+  if (/24 hours/i.test(str)) return { open: 0, close: 28 }; // always open
+  // Normalise en-dash to hyphen, remove "Open"
+  const s = str.replace(/Open\s*/i,'').replace(/[–—]/g, '-').trim();
+  // Pattern: H[:MM][ AP M]?-H[:MM][ APM]
+  const m = s.match(/(\d{1,2})(?::(\d{2}))?\s*(am|pm)?\s*[-]\s*(\d{1,2})(?::(\d{2}))?\s*(am|pm)?/i);
+  if (!m) return null;
+  let [, sh, sm, smod, eh, em, emod] = m;
+  sh = parseInt(sh); sm = parseInt(sm||'0');
+  eh = parseInt(eh); em = parseInt(em||'0');
+  if (!emod && smod) emod = smod;
+  if (!smod && emod) smod = emod;
+  let o = sh + sm/60, c = eh + em/60;
+  if (emod?.toLowerCase() === 'pm' && eh !== 12) c += 12;
+  if (emod?.toLowerCase() === 'am' && eh === 12) c = 0;
+  if (smod?.toLowerCase() === 'pm' && sh !== 12) o += 12;
+  if (smod?.toLowerCase() === 'am' && sh === 12) o = 0;
+  if (c < o) c += 24; // crosses midnight
+  return { open: o, close: c };
+}
+
+function getArrivalHour() {
+  if (datePlan) return datePlan.hour;
+  return 20; // fallback 8pm
+}
+
+function getDurationHours() {
+  const v = answers.duration;
+  if (!v || v === 'flex') return 3;
+  return parseFloat(v);
+}
+
+function isOpenDuring(place, arrH, durH) {
+  if (!place.opening_hours) return true; // no data → assume open
+  const d     = datePlan ? datePlan.date : (dayCtx ? dayCtx.now : new Date());
+  const days  = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const todayName = days[d.getDay()];
+  const hoursStr  = place.opening_hours[todayName];
+  const hrs = parseHours(hoursStr);
+  if (!hrs) return false; // Closed today
+  const endH = arrH + durH;
+  // Place must open before or when we arrive, and not close before we'd finish
+  return hrs.open <= arrH + 0.5 && hrs.close >= Math.min(endH, arrH + 1.5);
+}
+
+function closingHourToday(place) {
+  if (!place.opening_hours) return null;
+  const d     = datePlan ? datePlan.date : (dayCtx ? dayCtx.now : new Date());
+  const days  = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const todayName = days[d.getDay()];
+  const hrs = parseHours(place.opening_hours[todayName]);
+  return hrs ? hrs.close : null;
+}
+
+function formatClosingTime(closeH) {
+  if (closeH == null) return '';
+  const h = Math.floor(closeH % 24);
+  const m = Math.round((closeH % 1) * 60);
+  const ampm = h >= 12 ? 'pm' : 'am';
+  const h12  = h % 12 || 12;
+  return `${h12}${m ? ':' + String(m).padStart(2,'0') : ''}${ampm}`;
+}
+
+function renderQuiz() {
+  const q = QUESTIONS[quizStep];
+
+  // Progress dots
+  const prog = document.getElementById('quiz-progress');
+  prog.innerHTML = QUESTIONS.map((_, i) => `
+    <div class="quiz-dot ${i < quizStep ? 'done' : i === quizStep ? 'active' : ''}"></div>
+  `).join('');
+
+  // Step label
+  document.getElementById('step-label').textContent = `${quizStep + 1} of ${QUESTIONS.length}`;
+
+  // Back button
+  document.getElementById('quiz-back').style.visibility = quizStep === 0 ? 'hidden' : 'visible';
+
+  // Next button label
+  const nextBtn = document.getElementById('quiz-next');
+  nextBtn.textContent = quizStep === QUESTIONS.length - 1 ? 'Find dates →' : 'Next →';
+
+  const multi = q.type === 'multi';
+  const cur   = answers[q.id] || (multi ? [] : null);
+
+  document.getElementById('quiz-body').innerHTML = `
+    <div class="quiz-q">${q.q}</div>
+    <div class="options-grid">
+      ${q.opts.map(o => `
+        <button
+          class="opt-btn ${multi ? 'multi' : ''} ${multi ? (cur.includes(o.val) ? 'selected' : '') : cur === o.val ? 'selected' : ''}"
+          onclick="selectOpt('${q.id}', '${o.val}', ${multi})"
+        >
+          <span class="opt-icon">${o.icon}</span>
+          ${o.label}
+        </button>
+      `).join('')}
+    </div>
+  `;
+}
+
+function selectOpt(qid, val, multi) {
+  if (multi) {
+    answers[qid] = answers[qid] || [];
+    const idx = answers[qid].indexOf(val);
+    if (val === 'any') {
+      answers[qid] = ['any'];
+    } else {
+      answers[qid] = answers[qid].filter(v => v !== 'any');
+      if (idx >= 0) answers[qid].splice(idx, 1);
+      else answers[qid].push(val);
+    }
+  } else {
+    answers[qid] = val;
+  }
+  renderQuiz();
+}
+
+function quizNext() {
+  const q = QUESTIONS[quizStep];
+  const a = answers[q.id];
+  if (!a || (Array.isArray(a) && a.length === 0)) {
+    // Allow skipping with a gentle shake
+    const body = document.getElementById('quiz-body');
+    body.style.transform = 'translateX(8px)';
+    setTimeout(() => { body.style.transform = 'translateX(-6px)'; }, 100);
+    setTimeout(() => { body.style.transform = ''; }, 200);
+    // Still proceed after 1.5s if they click again quickly — or just let them skip
+    answers[q.id] = q.type === 'multi' ? ['any'] : 'any';
+  }
+
+  if (quizStep < QUESTIONS.length - 1) {
+    quizStep++;
+    renderQuiz();
+  } else {
+    startRanking();
+  }
+}
+
+function quizBack() {
+  if (quizStep > 0) { quizStep--; renderQuiz(); }
+}
+
+function resetQuiz() {
+  quizStep = 0;
+  answers  = {};
+  datePlan = null;
+  document.getElementById('datetime-screen').classList.remove('hidden');
+  document.getElementById('quiz-wrap').classList.add('hidden');
+  document.getElementById('loading-wrap').classList.add('hidden');
+  document.getElementById('results-wrap').classList.add('hidden');
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   RANKING ENGINE
+═══════════════════════════════════════════════════════════════════════ */
+
+async function startRanking() {
+  document.getElementById('quiz-wrap').classList.add('hidden');
+  document.getElementById('loading-wrap').classList.remove('hidden');
+
+  const loadingPhrases = [
+    'Consulting the stars…',
+    'Curating your evening…',
+    'Weighing the magic…',
+    'Searching hidden gems…',
+  ];
+  let pi = 0;
+  const lt = document.getElementById('loading-text');
+  const interval = setInterval(() => {
+    pi = (pi + 1) % loadingPhrases.length;
+    lt.textContent = loadingPhrases[pi];
+  }, 1800);
+
+  try {
+    const results = await rankPlaces();
+    clearInterval(interval);
+    showResults(results);
+  } catch (err) {
+    clearInterval(interval);
+    console.error(err);
+    // Fallback to local ranking if API fails
+    const local = localRank();
+    showResults(local);
+  }
+}
+
+function buildCandidates() {
+  const allPlaces = [...placesDB, ...customDB];
+  let candidates = allPlaces;
+
+  // Filter by category
+  const cats = answers.category || ['any'];
+  if (!cats.includes('any')) {
+    candidates = candidates.filter(p => cats.includes(p.category));
+  }
+
+  // Filter by setting (indoor/outdoor)
+  const setting = answers.setting;
+  if (setting === 'outdoor') candidates = candidates.filter(p => p.outdoor_seating || p.subcategory === 'Beach' || p.subcategory === 'Hiking' || p.subcategory === 'Nature' || p.subcategory === 'Park');
+  if (setting === 'indoor')  candidates = candidates.filter(p => !p.outdoor_seating || p.category !== 'Outdoor');
+
+  // Filter by budget
+  const budget = answers.budget;
+  const budgetMap = {
+    budget:  ['Free', 'Budget (< AED 50pp)', 'Moderate (AED 50–150pp)'],
+    mid:     ['Moderate (AED 50–150pp)', 'Expensive (AED 150–300pp)'],
+    high:    ['Expensive (AED 150–300pp)', 'Luxury (AED 300+pp)'],
+    luxury:  ['Luxury (AED 300+pp)'],
+    any:     null,
+  };
+  const budgetFilter = budgetMap[budget];
+  if (budgetFilter) candidates = candidates.filter(p => !p.price_level || budgetFilter.includes(p.price_level));
+
+  // Filter out places already visited recently (last 60 days)
+  const recentVisits = new Set(
+    visitLog
+      .filter(e => e.visitedAt && Date.now() - new Date(e.visitedAt) < 60 * 24 * 3600 * 1000)
+      .map(e => e.placeId)
+  );
+  candidates = candidates.filter(p => !recentVisits.has(p.id));
+
+  // Filter by opening hours: remove places closed today or closing before we'd finish
+  const arrH = getArrivalHour();
+  const durH = getDurationHours();
+  candidates = candidates.filter(p => isOpenDuring(p, arrH, durH));
+
+  // Rain: remove outdoor-only places
+  if (weatherCtx?.isRain && answers.setting !== 'outdoor') {
+    candidates = candidates.filter(p =>
+      !p.outdoor_seating || ['Dining','Entertainment','Arts & Culture','Wellness'].includes(p.category)
+    );
+  }
+
+  // Limit to avoid huge API payloads
+  return candidates.slice(0, 80);
+}
+
+function localRank() {
+  const candidates = buildCandidates();
+  const vibe = answers.vibe || 'any';
+  const prox = answers.proximity || 'dubai';
+
+  // Visit history scores
+  const visitScores = {};
+  visitLog.forEach(e => {
+    if (e.rating) visitScores[e.placeId] = e.rating;
+  });
+
+  const vibeMap = {
+    romantic:    ['Fine Dining','Waterfront','Rooftop','Spa','Hammam','Dhow Cruise','Sunset Spot'],
+    fun:         ['Arcade','Karaoke','Bowling','Mini Golf','Ice Skating','Escape Room'],
+    chill:       ['Cafe','Brunch','Waterfront Walk','Park','Beach','Gallery'],
+    cultural:    ['Museum','Gallery','Heritage','Historic District'],
+    adventurous: ['Skydiving','Hiking','Watersports','Desert','Hot Air Balloon','Karting'],
+    any:         [],
+  };
+  const goodSubs = vibeMap[vibe] || [];
+
+  const daytrip = prox === 'daytrip';
+
+  // Midpoint between the two people (for distance scoring)
+  const hasCoords = settings.yourLat && settings.yourLng && settings.herLat && settings.herLng;
+  const midLat = hasCoords ? (settings.yourLat + settings.herLat) / 2 : null;
+  const midLng = hasCoords ? (settings.yourLng + settings.herLng) / 2 : null;
+
+  const arrH = getArrivalHour();
+  const durH = getDurationHours();
+
+  return candidates
+    .map(p => {
+      let score = (p.rating || 3.5) * 20;
+      if (goodSubs.includes(p.subcategory)) score += 30;
+      if (visitScores[p.id]) score += (visitScores[p.id] - 3) * 8;
+      if (!daytrip && p.area === 'Abu Dhabi') score -= 50;
+
+      // Distance scoring
+      if (hasCoords && p.lat && p.lng) {
+        const dist = haversine(midLat, midLng, p.lat, p.lng);
+        if (prox === 'close')  score -= dist > 5  ? 40 : 0;
+        if (prox === 'medium') score -= dist > 25 ? 30 : 0;
+        // Bonus for genuinely close spots
+        if (dist < 5) score += 15;
+        else if (dist < 15) score += 5;
+      } else if (prox === 'close' && p.area !== settings.yourArea && p.area !== settings.herArea) {
+        score -= 20; // fallback: area name match
+      }
+
+      // Weather scoring
+      if (weatherCtx) {
+        const isOutdoorPlace = p.outdoor_seating ||
+          ['Beach','Park','Hiking','Nature','Waterfront Walk','Sunset Spot'].includes(p.subcategory);
+        if (isOutdoorPlace) {
+          if (weatherCtx.isGoodOutdoor) score += 25;
+          else if (weatherCtx.isHot)    score -= 20;
+          else if (weatherCtx.isWarm)   score -= 8;
+        }
+      }
+
+      // Prefer places with generous closing times on late nights
+      if (dayCtx?.isLateOk) {
+        const closeH = closingHourToday(p);
+        if (closeH != null && closeH >= arrH + durH + 1) score += 15;
+      }
+
+      return { ...p, score, reason: 'Matches your preferences for tonight.', aiPowered: false };
+    })
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 5);
+}
+
+async function rankPlaces() {
+  const key = settings.apiKey;
+  if (!key) return localRank();
+
+  const candidates = buildCandidates();
+  if (candidates.length === 0) return localRank();
+
+  const visitHistory = visitLog.slice(0, 20).map(e => ({
+    name: e.name,
+    rating: e.rating,
+    notes: e.notes,
+    timeSpent: e.timeSpent || '',
+    date: e.visitedAt ? new Date(e.visitedAt).toLocaleDateString() : '',
+  }));
+
+  const arrH = getArrivalHour();
+  const durH = getDurationHours();
+  const endH = arrH + durH;
+  const timeCtx = dayCtx
+    ? `${dayCtx.name} night — ${dayCtx.endLabel}. Arriving ~${arrH}:00, want to stay ~${durH} hours (done by ~${Math.floor(endH % 24)}:${String(Math.round((endH%1)*60)).padStart(2,'0')}).`
+    : '';
+  const weatherNote = weatherCtx
+    ? `Current weather: ${weatherCtx.label}. ${weatherCtx.isRain ? 'Raining — strongly avoid outdoor recommendations.' : weatherCtx.isHot ? 'Very hot — prefer indoor or well air-conditioned spots.' : weatherCtx.isGoodOutdoor ? 'Pleasant weather — outdoor spots are a bonus.' : ''}`
+    : '';
+
+  const prompt = `You are a personal date night curator for a couple in Dubai. Based on their preferences, rank the top 5 places from the candidates list.
+
+PREFERENCES:
+- Vibe: ${answers.vibe || 'any'}
+- Setting: ${answers.setting || 'any'}
+- Budget: ${answers.budget || 'any'}
+- Categories: ${(answers.category || ['any']).join(', ')}
+- Travel range: ${answers.proximity || 'dubai'}
+- His location: ${settings.yourArea || 'Dubai Marina'}${settings.yourLat ? ` (${settings.yourLat.toFixed(4)}, ${settings.yourLng.toFixed(4)})` : ''}
+- Her location: ${settings.herArea || 'Business Bay'}${settings.herLat ? ` (${settings.herLat.toFixed(4)}, ${settings.herLng.toFixed(4)})` : ''}
+- Personal notes: ${settings.notes || 'none'}
+${timeCtx ? '- Tonight: ' + timeCtx : ''}
+${weatherNote ? '- Weather: ' + weatherNote : ''}
+
+VISIT HISTORY (rated places they've been to):
+${visitHistory.length ? JSON.stringify(visitHistory, null, 2) : 'No history yet'}
+
+CANDIDATE PLACES:
+${JSON.stringify(candidates.map(p => ({
+  id: p.id,
+  name: p.name,
+  category: p.category,
+  subcategory: p.subcategory,
+  area: p.area,
+  rating: p.rating,
+  price: p.price_level,
+  outdoor: p.outdoor_seating,
+  summary: p.summary,
+})), null, 2)}
+
+Return ONLY a JSON array of exactly 5 objects, sorted best first, like:
+[{"id":"...", "reason":"A 1–2 sentence personal reason why this is perfect for them tonight, warm and evocative"}]
+
+No preamble, no markdown fences.`;
+
+  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 600,
+      messages: [{ role: 'user', content: prompt }],
+    })
+  });
+
+  if (!resp.ok) throw new Error(`API ${resp.status}`);
+  const data = await resp.json();
+  const text = data.content.find(b => b.type === 'text')?.text || '';
+
+  let ranked;
+  try {
+    ranked = JSON.parse(text.replace(/```json|```/g, '').trim());
+  } catch {
+    return localRank();
+  }
+
+  const byId = Object.fromEntries(candidates.map(p => [p.id, p]));
+  return ranked
+    .filter(r => byId[r.id])
+    .map(r => ({ ...byId[r.id], reason: r.reason, aiPowered: true }))
+    .slice(0, 5);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   RESULTS
+═══════════════════════════════════════════════════════════════════════ */
+
+function showResults(places) {
+  document.getElementById('loading-wrap').classList.add('hidden');
+  document.getElementById('results-wrap').classList.remove('hidden');
+
+  const summary = [
+    answers.vibe && answers.vibe !== 'any' ? answers.vibe : '',
+    answers.setting && answers.setting !== 'any' ? answers.setting : '',
+    answers.budget && answers.budget !== 'any' ? answers.budget + ' budget' : '',
+  ].filter(Boolean).join(' · ');
+  document.getElementById('results-summary').textContent = summary || 'Tailored for tonight';
+
+  const visited = new Set(visitLog.map(e => e.placeId));
+
+  const priceIcons = {
+    'Free': '🆓',
+    'Budget (< AED 50pp)': '💸',
+    'Moderate (AED 50–150pp)': '💰',
+    'Expensive (AED 150–300pp)': '✨',
+    'Luxury (AED 300+pp)': '🥂',
+  };
+
+  const arrH = getArrivalHour();
+  const durH = getDurationHours();
+  const desiredEndH = arrH + durH;
+
+  document.getElementById('results-list').innerHTML = places.map((p, i) => {
+    const closeH = closingHourToday(p);
+    const closesBeforeEnd = closeH != null && closeH < desiredEndH - 0.25;
+    const closingStr = closeH != null ? formatClosingTime(closeH) : '';
+
+    return `
+    <div class="place-card" id="pc-${p.id}">
+      <div class="place-rank">${['①','②','③','④','⑤'][i]}</div>
+
+      <div class="place-category">${p.category} · ${p.subcategory || ''}</div>
+      <div class="place-name">${p.name}</div>
+      <div class="place-sub">${p.area || ''}${p.address ? ' · ' + p.address : ''}</div>
+
+      ${p.reason ? `<div class="place-reason">${p.reason}</div>` : ''}
+      ${p.summary && !p.reason ? `<div class="place-reason">${p.summary}</div>` : ''}
+
+      <div class="place-meta">
+        ${p.rating ? `<span class="tag gold">⭐ ${p.rating}</span>` : ''}
+        ${p.price_level ? `<span class="tag">${priceIcons[p.price_level] || ''} ${p.price_level}</span>` : ''}
+        ${p.outdoor_seating ? `<span class="tag sage">🌿 Outdoor seating</span>` : ''}
+        ${closingStr ? `<span class="tag ${closesBeforeEnd ? 'rose' : ''}">🕐 Closes ${closingStr}</span>` : ''}
+        ${closesBeforeEnd ? `<span class="closes-tag">⚠ Closes before you'd finish</span>` : ''}
+        ${visited.has(p.id) ? `<span class="visited-badge">✓ Been here</span>` : ''}
+        ${p.aiPowered ? `<span class="tag gold">✦ AI pick</span>` : ''}
+      </div>
+
+      <div class="place-actions">
+        <button class="btn btn-primary btn-sm" onclick="markVisited('${p.id}', '${escape(p.name)}')">
+          ♡ Log this date
+        </button>
+        ${p.maps_url || (p.lat && p.lng)
+          ? `<a class="btn btn-outline btn-sm map-link" href="${p.maps_url || `https://maps.google.com/?q=${p.lat},${p.lng}`}" target="_blank">📍 Maps</a>`
+          : ''}
+        ${p.website
+          ? `<a class="btn btn-outline btn-sm" href="${p.website}" target="_blank">🔗 Website</a>`
+          : ''}
+      </div>
+    </div>`;
+  }).join('');
+
+  if (places.length === 0) {
+    document.getElementById('results-list').innerHTML = `
+      <div class="card" style="text-align:center;padding:48px 20px">
+        <div style="font-family:'Cormorant Garamond',serif;font-size:22px;font-style:italic;color:var(--ink3)">
+          No places matched those filters.<br>Try widening your preferences.
+        </div>
+        <button class="btn btn-outline btn-sm" onclick="resetQuiz()" style="margin-top:20px">Try again</button>
+      </div>
+    `;
+    return;
+  }
+
+  // ── Multi-stop: if top pick closes before desired end, suggest a follow-on ──
+  const topPick = places[0];
+  const topCloseH = closingHourToday(topPick);
+  if (topCloseH != null && answers.duration !== 'flex' && topCloseH < desiredEndH - 0.5) {
+    const gapH = desiredEndH - topCloseH;
+    const allPlaces = [...placesDB, ...customDB];
+    const candidates2 = allPlaces.filter(p =>
+      p.id !== topPick.id &&
+      !visitLog.some(e => e.placeId === p.id && Date.now() - new Date(e.visitedAt) < 60*24*3600*1000) &&
+      isOpenDuring(p, topCloseH, gapH)
+    );
+    const vibeMap2 = {
+      romantic: ['Fine Dining','Rooftop','Waterfront','Shisha Lounge','Spa'],
+      fun:      ['Arcade','Bar','Rooftop','Live Music'],
+      chill:    ['Cafe','Waterfront Walk','Shisha Lounge','Park'],
+      any:      [],
+    };
+    const goodSubs2 = vibeMap2[answers.vibe] || vibeMap2.any;
+    const after = candidates2
+      .map(p => ({ ...p, score: (p.rating||3.5)*20 + (goodSubs2.includes(p.subcategory)?20:0) }))
+      .sort((a,b) => b.score - a.score)
+      .slice(0, 3);
+
+    if (after.length) {
+      const gapLabel = gapH < 1.5 ? 'a quick stop after'
+                     : gapH < 3   ? 'somewhere to continue the night'
+                     :              'a second venue for the rest of the evening';
+      const existingList = document.getElementById('results-list');
+      const wrap = document.createElement('div');
+      wrap.className = 'multistop-wrap';
+      wrap.innerHTML = `
+        <h3>Continue <em>the night?</em></h3>
+        <p class="text-sm" style="margin-bottom:14px">
+          ${topPick.name} closes at ${formatClosingTime(topCloseH)} — here's ${gapLabel}:
+        </p>
+        ${after.map(p => {
+          const cH = closingHourToday(p);
+          return `<div class="place-card card-sm" style="cursor:default">
+            <div class="place-category">${p.category} · ${p.subcategory || ''}</div>
+            <div class="place-name" style="font-size:18px">${p.name}</div>
+            <div class="place-sub">${p.area || ''}</div>
+            <div class="place-meta" style="margin-top:10px">
+              ${p.rating ? `<span class="tag gold">⭐ ${p.rating}</span>` : ''}
+              ${p.price_level ? `<span class="tag">${priceIcons[p.price_level]||''} ${p.price_level}</span>` : ''}
+              ${cH ? `<span class="tag">🕐 Closes ${formatClosingTime(cH)}</span>` : ''}
+              ${p.outdoor_seating ? `<span class="tag sage">🌿 Outdoor</span>` : ''}
+            </div>
+            <div class="place-actions" style="margin-top:10px">
+              <button class="btn btn-outline btn-sm" onclick="markVisited('${p.id}','${escape(p.name)}')">♡ Log</button>
+              ${p.maps_url || (p.lat && p.lng) ? `<a class="btn btn-outline btn-sm map-link" href="${p.maps_url || `https://maps.google.com/?q=${p.lat},${p.lng}`}" target="_blank">📍 Maps</a>` : ''}
+            </div>
+          </div>`;
+        }).join('')}
+      `;
+      existingList.appendChild(wrap);
+    }
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   LOG
+═══════════════════════════════════════════════════════════════════════ */
+
+function markVisited(placeId, name) {
+  pendingLogPlace = { id: placeId, name: unescape(name) };
+  pendingLogRating = 0;
+  pendingLogTimeSpent = '';
+  document.getElementById('lm-title').textContent = `How was ${unescape(name)}?`;
+  document.getElementById('lm-notes').value = '';
+  setLogRating(0);
+  document.querySelectorAll('#lm-time-row .time-chip').forEach(b => b.classList.remove('selected'));
+  document.getElementById('log-modal').classList.add('open');
+}
+
+function setTimeSpent(val, btn) {
+  pendingLogTimeSpent = val;
+  document.querySelectorAll('#lm-time-row .time-chip').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+
+function setLogRating(n) {
+  pendingLogRating = n;
+  document.querySelectorAll('#lm-rating-row .star-btn').forEach((btn, i) => {
+    btn.classList.toggle('lit', i < n);
+  });
+}
+
+function saveLogEntry() {
+  if (!pendingLogPlace) return;
+  const place = [...placesDB, ...customDB].find(p => p.id === pendingLogPlace.id) || {};
+  visitLog.unshift({
+    placeId:     pendingLogPlace.id,
+    name:        pendingLogPlace.name,
+    rating:      pendingLogRating,
+    notes:       document.getElementById('lm-notes').value.trim(),
+    visitedAt:   new Date().toISOString(),
+    category:    place.category || '',
+    subcategory: place.subcategory || '',
+    timeSpent:   pendingLogTimeSpent || '',
+  });
+  save(STORAGE_KEYS.log, visitLog);
+  closeLogModal();
+  renderLog();
+}
+
+function closeLogModal() {
+  document.getElementById('log-modal').classList.remove('open');
+  pendingLogPlace = null;
+}
+
+function renderLog() {
+  const el = document.getElementById('log-list');
+  const sumEl = document.getElementById('log-summary-text');
+
+  if (visitLog.length === 0) {
+    sumEl.textContent = '';
+    el.innerHTML = `<div class="log-empty">Your first adventure awaits…</div>`;
+    return;
+  }
+
+  const avg = visitLog.filter(e => e.rating).reduce((a, e, _, arr) => a + e.rating / arr.length, 0);
+  sumEl.textContent = `${visitLog.length} places visited · avg rating ${avg.toFixed(1)} ⭐`;
+
+  el.innerHTML = visitLog.map((e, idx) => `
+    <div class="log-entry">
+      <div class="log-entry-header">
+        <div>
+          <div class="log-name">${e.name}</div>
+          <div class="log-date">${e.visitedAt ? new Date(e.visitedAt).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' }) : ''}</div>
+        </div>
+        <div style="text-align:right">
+          <div class="log-stars">${'★'.repeat(e.rating || 0)}${'☆'.repeat(5 - (e.rating || 0))}</div>
+          <button class="btn btn-outline btn-sm" style="margin-top:6px;font-size:11px;padding:4px 10px" onclick="removeLog(${idx})">Remove</button>
+        </div>
+      </div>
+      ${e.notes ? `<div class="log-notes">${e.notes}</div>` : ''}
+      <div class="log-tags">
+        ${e.category ? `<span class="tag">${e.category}</span>` : ''}
+        ${e.subcategory ? `<span class="tag">${e.subcategory}</span>` : ''}
+        ${e.timeSpent ? `<span class="tag">⏱ ${e.timeSpent}</span>` : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+function removeLog(idx) {
+  if (!confirm('Remove this entry?')) return;
+  visitLog.splice(idx, 1);
+  save(STORAGE_KEYS.log, visitLog);
+  renderLog();
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   ADD CUSTOM PLACE MODAL
+═══════════════════════════════════════════════════════════════════════ */
+
+function openAddModal() {
+  document.getElementById('m-name').value     = '';
+  document.getElementById('m-sub').value      = '';
+  document.getElementById('m-area').value     = '';
+  document.getElementById('m-notes').value    = '';
+  document.getElementById('m-visited').checked = false;
+  modalRating = 0;
+  setModalRating(0);
+  document.getElementById('add-modal').classList.add('open');
+}
+
+function closeAddModal() {
+  document.getElementById('add-modal').classList.remove('open');
+}
+
+function setModalRating(n) {
+  modalRating = n;
+  document.querySelectorAll('#m-rating-row .star-btn').forEach((btn, i) => {
+    btn.classList.toggle('lit', i < n);
+  });
+}
+
+function saveCustomPlace() {
+  const name = document.getElementById('m-name').value.trim();
+  if (!name) return;
+
+  const place = {
+    id:          'custom_' + Date.now(),
+    name,
+    category:    document.getElementById('m-category').value,
+    subcategory: document.getElementById('m-sub').value.trim(),
+    area:        document.getElementById('m-area').value.trim(),
+    price_level: document.getElementById('m-price').value,
+    summary:     document.getElementById('m-notes').value.trim(),
+    custom:      true,
+    outdoor_seating: false,
+  };
+
+  customDB.push(place);
+  save(STORAGE_KEYS.custom, customDB);
+
+  if (document.getElementById('m-visited').checked) {
+    visitLog.unshift({
+      placeId: place.id, name: place.name, rating: modalRating,
+      notes: place.summary, visitedAt: new Date().toISOString(),
+      category: place.category, subcategory: place.subcategory,
+    });
+    save(STORAGE_KEYS.log, visitLog);
+  }
+
+  closeAddModal();
+  renderLog();
+  updateDBStats();
+}
+
+/* ── Geolocation detect ── */
+function detectLocation(who) {
+  if (!navigator.geolocation) { alert('Geolocation not supported by your browser.'); return; }
+  const btn = event.target;
+  btn.textContent = '…';
+  navigator.geolocation.getCurrentPosition(pos => {
+    const lat = +pos.coords.latitude.toFixed(6);
+    const lng = +pos.coords.longitude.toFixed(6);
+    if (who === 'your') { settings.yourLat = lat; settings.yourLng = lng; }
+    else                { settings.herLat  = lat; settings.herLng  = lng; }
+    save(STORAGE_KEYS.settings, settings);
+    btn.textContent = '✓';
+    const el = document.getElementById(`s-${who}-coords`);
+    if (el) el.textContent = `${lat}, ${lng}`;
+    setTimeout(() => btn.textContent = '📍', 2000);
+  }, () => { btn.textContent = '📍'; alert('Could not get location. Make sure location access is allowed.'); });
+}
+
+/* ── Haversine distance (km) ── */
+function haversine(lat1, lng1, lat2, lng2) {
+  const R = 6371, toR = Math.PI / 180;
+  const dLat = (lat2 - lat1) * toR, dLng = (lng2 - lng1) * toR;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*toR)*Math.cos(lat2*toR)*Math.sin(dLng/2)**2;
+  return R * 2 * Math.asin(Math.sqrt(a));
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   SETTINGS
+═══════════════════════════════════════════════════════════════════════ */
+
+function loadSettings() {
+  document.getElementById('s-your-area').value    = settings.yourArea   || '';
+  document.getElementById('s-her-area').value     = settings.herArea    || '';
+  document.getElementById('s-api-key').value      = settings.apiKey     || '';
+  document.getElementById('s-default-vibe').value = settings.defaultVibe|| '';
+  document.getElementById('s-notes').value        = settings.notes      || '';
+  const fmt = (lat, lng) => lat != null ? `${lat.toFixed(4)}, ${lng.toFixed(4)}` : '';
+  document.getElementById('s-your-coords').textContent = fmt(settings.yourLat, settings.yourLng);
+  document.getElementById('s-her-coords').textContent  = fmt(settings.herLat,  settings.herLng);
+}
+
+function saveSettings() {
+  settings = {
+    yourArea:    document.getElementById('s-your-area').value.trim(),
+    yourLat:     settings.yourLat,
+    yourLng:     settings.yourLng,
+    herArea:     document.getElementById('s-her-area').value.trim(),
+    herLat:      settings.herLat,
+    herLng:      settings.herLng,
+    apiKey:      document.getElementById('s-api-key').value.trim(),
+    defaultVibe: document.getElementById('s-default-vibe').value,
+    notes:       document.getElementById('s-notes').value.trim(),
+  };
+  save(STORAGE_KEYS.settings, settings);
+  const flash = document.getElementById('settings-saved');
+  flash.classList.remove('hidden');
+  setTimeout(() => flash.classList.add('hidden'), 2500);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   DB IMPORT / EXPORT
+═══════════════════════════════════════════════════════════════════════ */
+
+function updateDBStats() {
+  const all = [...placesDB, ...customDB];
+  document.getElementById('db-count').textContent = all.length;
+  const cats = {};
+  all.forEach(p => { cats[p.category] = (cats[p.category] || 0) + 1; });
+  document.getElementById('db-cats').textContent = Object.entries(cats)
+    .sort((a,b) => b[1]-a[1]).slice(0,4)
+    .map(([c,n]) => `${c} (${n})`).join(', ');
+}
+
+function importDB(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      const imported = Array.isArray(data) ? data : data.places;
+      if (!imported?.length) throw new Error('No places found');
+      placesDB = imported;
+      save(STORAGE_KEYS.db, placesDB);
+      updateDBStats();
+      alert(`✅ Imported ${imported.length} places!`);
+    } catch (err) {
+      alert('Import failed: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+}
+
+function exportDB() {
+  const data = JSON.stringify({ places: [...placesDB, ...customDB], exported: new Date().toISOString() }, null, 2);
+  const blob = new Blob([data], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a    = Object.assign(document.createElement('a'), { href: url, download: 'dubai_places.json' });
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   NAV
+═══════════════════════════════════════════════════════════════════════ */
+
+function showTab(tab) {
+  document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById(tab).classList.add('active');
+  const tabs = ['discover','log','settings'];
+  document.querySelectorAll('nav button')[tabs.indexOf(tab)].classList.add('active');
+
+  if (tab === 'log')      renderLog();
+  if (tab === 'settings') { loadSettings(); updateDBStats(); }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════════════════════════════════ */
+
+// Pre-fill date/time inputs with today + current time (rounded to 30 min)
+(function seedDateTimePicker() {
+  const now = new Date();
+  const iso = now.toISOString().slice(0, 10);
+  document.getElementById('plan-date').value = iso;
+  const mins = now.getMinutes() < 30 ? '00' : '30';
+  document.getElementById('plan-time').value =
+    `${String(now.getHours()).padStart(2,'0')}:${mins}`;
+})();
+
+updateContextBanner();
+updateDBStats();
+</script>
+</body>
+</html>

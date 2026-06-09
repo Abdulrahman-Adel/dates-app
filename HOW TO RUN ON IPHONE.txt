@@ -1,0 +1,72 @@
+═══════════════════════════════════════════
+  Date Night · Dubai — iPhone Setup Guide
+═══════════════════════════════════════════
+
+WHAT WAS DONE
+─────────────
+The app is now a Progressive Web App (PWA). That means you can install it on
+your iPhone's home screen directly from Safari — no App Store, no Xcode, no
+developer account needed. It works exactly like a native app (full screen, no
+browser chrome, offline-capable once installed).
+
+
+1. TEST ON YOUR LAPTOP (same as before)
+────────────────────────────────────────
+  cd "Dates Application\app"
+  npm install           (first time only)
+  npm run dev
+
+  Opens at http://localhost:3000
+
+
+2. TEST ON YOUR iPHONE (over WiFi)
+────────────────────────────────────
+  a. Make sure your laptop and iPhone are on the SAME WiFi network.
+
+  b. Start the dev server:
+       cd "Dates Application\app"
+       npm run dev
+
+  c. The terminal will print TWO addresses, e.g.:
+       Local:   http://localhost:3000/
+       Network: http://192.168.x.x:3000/    ← use this one
+
+  d. On your iPhone, open Safari and go to that Network address.
+     (You can also scan it with the Camera app if you screenshot the QR
+      that Vite shows in some versions.)
+
+  e. The app will load normally in Safari.
+
+
+3. INSTALL AS AN APP ON YOUR iPHONE HOME SCREEN
+─────────────────────────────────────────────────
+  Do this AFTER step 2 (app must be open in Safari):
+
+  a. Tap the Share button  (the box with the arrow pointing up).
+  b. Scroll down and tap "Add to Home Screen".
+  c. Name it "Date Night" and tap "Add".
+  d. The app icon now appears on your home screen.
+  e. Tap it — it launches full-screen with no Safari browser bar,
+     just like a native app.
+
+  TIP: Once installed, the app caches itself and works even without
+       internet (your saved data and liked places are stored locally).
+
+
+4. KEEPING IT UPDATED
+──────────────────────
+  Whenever you make code changes, just run the dev server again and reload
+  the page in Safari (or re-install). The service worker will pick up the
+  new version automatically on next load.
+
+
+5. NOTES
+─────────
+  • The app icon on your home screen comes from icon-180.png in this folder.
+  • Your data (liked places, visit log, settings) is saved on-device via
+    localStorage — it persists across launches.
+  • The AI ranking feature still needs an internet connection to call the
+    Anthropic API.
+  • If you ever want to distribute it to others without the App Store, look
+    into free hosting options like Netlify or Vercel — deploy with
+    "npm run build" and drag the dist/ folder.
