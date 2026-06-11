@@ -1,5 +1,5 @@
 // Date Night PWA — Service Worker
-const CACHE = 'date-night-v3'
+const CACHE = 'date-night-v4'
 
 // Assets to pre-cache on install (app shell)
 const PRECACHE = [
@@ -33,6 +33,13 @@ self.addEventListener('fetch', event => {
 
   // Never intercept non-GET requests (Supabase writes, API posts, …)
   if (request.method !== 'GET') return
+
+  // Network-first for page loads so new deploys appear immediately
+  // (falls back to the cached shell when offline)
+  if (request.mode === 'navigate') {
+    event.respondWith(fetch(request).catch(() => caches.match('/')))
+    return
+  }
 
   // Network-first for data, APIs, and Supabase so they're always fresh
   if (
