@@ -1,5 +1,5 @@
 // Date Night PWA — Service Worker
-const CACHE = 'date-night-v2'
+const CACHE = 'date-night-v3'
 
 // Assets to pre-cache on install (app shell)
 const PRECACHE = [
@@ -58,6 +58,36 @@ self.addEventListener('fetch', event => {
         }
         return response
       })
+    })
+  )
+})
+
+// ── Push notifications ──────────────────────────────────────────
+// Payload: { title, body, tag, url }
+self.addEventListener('push', event => {
+  let data = {}
+  try { data = event.data ? event.data.json() : {} } catch { /* ignore */ }
+  const title = data.title || 'Date Night 💕'
+  event.waitUntil(
+    self.registration.showNotification(title, {
+      body: data.body || '',
+      tag: data.tag || 'date-night',
+      icon: '/icon-192.png',
+      badge: '/icon-192.png',
+      data: { url: data.url || '/' },
+    })
+  )
+})
+
+self.addEventListener('notificationclick', event => {
+  event.notification.close()
+  const url = event.notification.data?.url || '/'
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
+      for (const c of list) {
+        if ('focus' in c) { c.navigate(url); return c.focus() }
+      }
+      return clients.openWindow(url)
     })
   )
 })

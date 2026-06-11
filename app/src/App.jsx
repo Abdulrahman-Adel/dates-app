@@ -177,6 +177,112 @@ function isOpenNow(openingHours) {
   return close < open ? (cur >= open || cur <= close) : (cur >= open && cur <= close)
 }
 
+// ─── Opening-hours range for a given date ────────────────────────────────────
+// Returns 'closed' | '24h' | { open, close } (minutes since midnight) | null
+function hoursRangeFor(openingHours, date) {
+  if (!openingHours || Object.keys(openingHours).length === 0) return null
+  const DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']
+  const dayName = DAYS[date.getDay()]
+  const hoursStr =
+    openingHours[dayName] ||
+    Object.entries(openingHours).find(([k]) => k.startsWith(dayName.slice(0, 3)))?.[1]
+  if (!hoursStr) return null
+  const s = hoursStr.toLowerCase().trim()
+  if (s === 'closed') return 'closed'
+  if (s.includes('24 hours') || s.includes('open 24')) return '24h'
+  const m = s.match(/(\d{1,2})(?::(\d{2}))?\s*(am|pm)\s*[-–—to]+\s*(\d{1,2})(?::(\d{2}))?\s*(am|pm)/i)
+  if (!m) return null
+  const to24 = (h, min, p) => {
+    h = parseInt(h); min = parseInt(min || 0)
+    if (p === 'pm' && h !== 12) h += 12
+    if (p === 'am' && h === 12) h = 0
+    return h * 60 + min
+  }
+  return { open: to24(m[1], m[2], m[3].toLowerCase()), close: to24(m[4], m[5], m[6].toLowerCase()) }
+}
+
+// ─── Duration fit — will the place still be open for the whole visit? ────────
+// start: Date of planned arrival · hours: planned length of the evening
+function durationFitScore(openingHours, start, hours) {
+  const r = hoursRangeFor(openingHours, start)
+  if (r == null) return 0            // unknown hours — stay neutral
+  if (r === 'closed') return -70
+  if (r === '24h') return 12
+  const startMin = start.getHours() * 60 + start.getMinutes()
+  let { open, close } = r
+  if (close <= open) close += 1440   // closes after midnight
+  if (open - startMin > 90) return -40        // doesn't open until much later
+  const minsLeft = close - startMin
+  if (minsLeft <= 0) return -70               // already closed by then
+  if (minsLeft < 45) return -50               // closing almost immediately
+  if (startMin + hours * 60 <= close) return 14   // open for the whole visit ✓
+  const cutShort = startMin + hours * 60 - close
+  return -Math.min(40, (cutShort / 15) * 5)   // closes partway through
+}
+
+// ─── Relationship stats from the first-date anchor ───────────────────────────
+function relationshipStats(firstDate) {
+  if (!firstDate) return null
+  const start = new Date(firstDate + 'T00:00')
+  if (isNaN(start)) return null
+  const now = new Date(); now.setHours(0, 0, 0, 0)
+  if (now < start) return null
+  let months = (now.getFullYear() - start.getFullYear()) * 12 + (now.getMonth() - start.getMonth())
+  let anchor = new Date(start); anchor.setMonth(start.getMonth() + months)
+  if (anchor > now) { months--; anchor = new Date(start); anchor.setMonth(start.getMonth() + months) }
+  const days = Math.round((now - anchor) / 86400000)
+  const totalDays = Math.round((now - start) / 86400000)
+  return { months, days, totalDays }
+}
+
+// ─── Upcoming occasions (built-ins + key dates + custom) ─────────────────────
+function nextYearly(month, day, today) {
+  let d = new Date(today.getFullYear(), month, day)
+  if (d < today) d = new Date(today.getFullYear() + 1, month, day)
+  return d
+}
+
+function buildOccasions(occ) {
+  const today = new Date(); today.setHours(0, 0, 0, 0)
+  const out = []
+  const push = (key, name, date, emoji, big = false) => {
+    const daysAway = Math.round((date - today) / 86400000)
+    if (daysAway >= 0 && daysAway <= 370) out.push({ key, name, date, daysAway, emoji, big })
+  }
+
+  push('valentines', "Valentine's Day", nextYearly(1, 14, today), '🌹', true)
+  push('newyear', "New Year's Eve", nextYearly(11, 31, today), '🎆', true)
+
+  if (occ?.herBirthday) {
+    const b = new Date(occ.herBirthday + 'T00:00')
+    if (!isNaN(b)) push('birthday', 'Her birthday', nextYearly(b.getMonth(), b.getDate(), today), '🎂', true)
+  }
+
+  if (occ?.firstDate) {
+    const fd = new Date(occ.firstDate + 'T00:00')
+    if (!isNaN(fd)) {
+      const ann = nextYearly(fd.getMonth(), fd.getDate(), today)
+      const years = ann.getFullYear() - fd.getFullYear()
+      if (years >= 1) push('anniversary', `${years} year${years > 1 ? 's' : ''} together`, ann, '💍', true)
+      // monthly mini-anniversary on the same day-of-month (unless it IS the anniversary)
+      let m = new Date(today.getFullYear(), today.getMonth(), fd.getDate())
+      if (m < today) m = new Date(today.getFullYear(), today.getMonth() + 1, fd.getDate())
+      if (m > fd && m.toDateString() !== ann.toDateString()) {
+        const monthsT = (m.getFullYear() - fd.getFullYear()) * 12 + (m.getMonth() - fd.getMonth())
+        push('monthiversary', `${monthsT} month${monthsT > 1 ? 's' : ''} together`, m, '💕', false)
+      }
+    }
+  }
+
+  ;(occ?.custom || []).forEach(c => {
+    const d = new Date(c.date + 'T00:00')
+    if (isNaN(d)) return
+    push(`custom_${c.id}`, c.name, c.yearly !== false ? nextYearly(d.getMonth(), d.getDate(), today) : d, '🎉', true)
+  })
+
+  return out.sort((a, b) => a.daysAway - b.daysAway)
+}
+
 // ─── Time-of-day → category bonus map ────────────────────────────────────────
 function getTimeBonusMap(hour) {
   if (hour >= 6  && hour < 11) return { Dining: 8,  Wellness: 14, Outdoor: 12, 'Arts & Culture': 4 }
@@ -277,6 +383,13 @@ function scorePlaceAdvanced(place, model, context) {
   // 8. Time-of-day affinity
   score += (getTimeBonusMap(now.getHours())[place.category] || 0)
 
+  // 8.5 Duration fit — only suggest places that will still be open for the
+  //     whole time you plan to spend out (uses the quiz's when + duration)
+  if (answers?.when && answers?.duration > 0) {
+    const start = new Date(answers.when)
+    if (!isNaN(start)) score += durationFitScore(place.opening_hours, start, answers.duration)
+  }
+
   // 9. Weather penalty (Dubai heat / humidity)
   if (weather) {
     const { tempC, humidity } = weather
@@ -361,6 +474,17 @@ const QUIZ_STEPS = [
     id: 'when',
     q: 'When are you going?',
     type: 'datetime',
+  },
+  {
+    id: 'duration',
+    q: 'How long do you have?',
+    type: 'cards',
+    options: [
+      { v: 2, label: 'Quick', emoji: '⏱️', desc: '~2 hours' },
+      { v: 4, label: 'Half evening', emoji: '🌆', desc: '3–4 hours' },
+      { v: 6, label: 'Full night', emoji: '🌙', desc: '5+ hours' },
+      { v: 0, label: 'Flexible', emoji: '🤷', desc: 'No time limit' },
+    ],
   },
   {
     id: 'categories',
@@ -954,6 +1078,10 @@ function QuizView({ step, answers, setAnswer, onNext, onBack, loading, onSpontan
 
 // ─── Liked View ───────────────────────────────────────────────────────────────
 function LikedView({ liked, onRemove }) {
+  const [query, setQuery]       = useState('')
+  const [catFilter, setCatFilter]     = useState(null)
+  const [priceFilter, setPriceFilter] = useState(0)   // 0 = all, 1–4 price tiers
+
   if (liked.length === 0) {
     return (
       <div className="empty-state">
@@ -963,11 +1091,62 @@ function LikedView({ liked, onRemove }) {
       </div>
     )
   }
+
+  const cats = [...new Set(liked.map(p => p.category).filter(Boolean))].sort()
+  const q = query.trim().toLowerCase()
+  const filtered = liked.filter(p => {
+    if (catFilter && p.category !== catFilter) return false
+    if (priceFilter && (PRICE_NUM[p.price_level] || 0) !== priceFilter) return false
+    if (q && !`${p.name} ${p.subcategory || ''} ${p.area || ''}`.toLowerCase().includes(q)) return false
+    return true
+  })
+
   return (
     <div className="list-view">
       <h2 className="list-title">Saved <span className="list-count">{liked.length}</span></h2>
+
+      {/* ── Search & filters ── */}
+      <div className="filter-bar">
+        <input
+          className="form-input filter-search"
+          placeholder="🔍 Search saved places…"
+          value={query}
+          onChange={e => setQuery(e.target.value)}
+        />
+        <div className="filter-chips">
+          <button className={`filter-chip ${!catFilter ? 'chip-on' : ''}`} onClick={() => setCatFilter(null)}>All</button>
+          {cats.map(c => (
+            <button
+              key={c}
+              className={`filter-chip ${catFilter === c ? 'chip-on' : ''}`}
+              onClick={() => setCatFilter(f => f === c ? null : c)}
+            >{CAT_EMOJI[c]} {c}</button>
+          ))}
+        </div>
+        <div className="filter-chips">
+          {[0, 1, 2, 3, 4].map(n => (
+            <button
+              key={n}
+              className={`filter-chip ${priceFilter === n ? 'chip-on' : ''}`}
+              onClick={() => setPriceFilter(n)}
+            >{n === 0 ? 'Any price' : '💰'.repeat(n)}</button>
+          ))}
+        </div>
+        {filtered.length !== liked.length && (
+          <p className="filter-count">{filtered.length} of {liked.length} shown</p>
+        )}
+      </div>
+
+      {filtered.length === 0 && (
+        <div className="empty-state">
+          <span className="empty-icon">🔍</span>
+          <h2>No matches</h2>
+          <p>Try a different search or filter</p>
+        </div>
+      )}
+
       <div className="place-list">
-        {liked.map(place => (
+        {filtered.map(place => (
           <div key={place.id} className="place-row">
             <div className="place-thumb" style={{ background: `${CAT_COLOR[place.category] || '#444'}30` }}>
               {place.photo_url
@@ -1060,7 +1239,7 @@ function PhotoLightbox({ photos, index, onClose, onDelete }) {
 const POLAROID_TILTS = [-2.6, 2.1, -1.4, 2.8, -2.2, 1.6]
 
 // One memory in the scrapbook.
-function LogEntry({ entry, index = 0, onRemove, onAddPhoto, onRemovePhoto }) {
+function LogEntry({ entry, index = 0, onRemove, onEdit, onAddPhoto, onRemovePhoto }) {
   const [lbIndex, setLbIndex]     = useState(null)
   const [uploading, setUploading] = useState(false)
   const fileRef = useRef(null)
@@ -1087,6 +1266,7 @@ function LogEntry({ entry, index = 0, onRemove, onAddPhoto, onRemovePhoto }) {
     <div className={`sb-card ${index % 2 === 0 ? 'sb-tilt-l' : 'sb-tilt-r'}`}>
       <span className="sb-tape" aria-hidden="true" />
       <button className="sb-remove" onClick={() => onRemove(entry.id)} title="Remove">✕</button>
+      <button className="sb-edit" onClick={() => onEdit(entry)} title="Edit this memory">✎</button>
 
       <div className="sb-top">
         <span className="sb-stamp">{day} {month} {year}</span>
@@ -1156,9 +1336,15 @@ const todayStr = () => {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
-function LogView({ log, onAddEntry, onRemove, onAddPhoto, onRemovePhoto }) {
+function LogView({ log, onAddEntry, onUpdateEntry, onRemove, onAddPhoto, onRemovePhoto, occasions }) {
   const [adding, setAdding]       = useState(false)
+  const [editingId, setEditingId] = useState(null)
   const [form, setForm]           = useState({ name: '', rating: 5, notes: '', link: '', visitDate: todayStr() })
+  // ── Search & filters ──
+  const [query, setQuery]           = useState('')
+  const [minHearts, setMinHearts]   = useState(0)
+  const [personFilter, setPersonFilter] = useState(null)
+  const [yearFilter, setYearFilter] = useState(null)
   const [photoFiles, setPhotoFiles]       = useState([])
   const [photoPreviews, setPhotoPreviews] = useState([])
   const [resolved, setResolved]   = useState(null)   // { lat, lng } from the maps link
@@ -1192,7 +1378,24 @@ function LogView({ log, onAddEntry, onRemove, onAddPhoto, onRemovePhoto }) {
   const resetForm = () => {
     setForm({ name: '', rating: 5, notes: '', link: '', visitDate: todayStr() })
     setResolved(null)
+    setEditingId(null)
     clearPhotos()
+  }
+
+  // ── Start editing an existing memory: prefill the form ──
+  const startEdit = entry => {
+    setEditingId(entry.id)
+    setForm({
+      name: entry.placeName || '',
+      rating: entry.rating ?? 5,
+      notes: entry.notes || '',
+      link: entry.googleUrl || '',
+      visitDate: entry.date ? new Date(entry.date).toISOString().slice(0, 10) : todayStr(),
+    })
+    setResolved(entry.lat != null ? { lat: entry.lat, lng: entry.lng } : null)
+    clearPhotos()
+    setAdding(true)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   // When a Google Maps link is pasted/entered, expand it server-side and
@@ -1215,7 +1418,7 @@ function LogView({ log, onAddEntry, onRemove, onAddPhoto, onRemovePhoto }) {
     if (!form.name.trim()) return
     setSaving(true)
     try {
-      await onAddEntry({
+      const payload = {
         placeName: form.name.trim(),
         rating: form.rating,
         notes: form.notes,
@@ -1223,8 +1426,14 @@ function LogView({ log, onAddEntry, onRemove, onAddPhoto, onRemovePhoto }) {
         googleUrl: form.link.trim() || null,
         lat: resolved?.lat ?? null,
         lng: resolved?.lng ?? null,
-        _photoFiles: photoFiles,   // attached after the entry is created
-      })
+      }
+      if (editingId) {
+        await onUpdateEntry(editingId, payload)
+        // new photos picked while editing get attached to the same entry
+        if (photoFiles.length) await onAddPhoto(editingId, photoFiles)
+      } else {
+        await onAddEntry({ ...payload, _photoFiles: photoFiles })
+      }
       resetForm()
       setAdding(false)
     } catch {
@@ -1233,8 +1442,23 @@ function LogView({ log, onAddEntry, onRemove, onAddPhoto, onRemovePhoto }) {
     setSaving(false)
   }
 
+  // ── Apply search & filters ──
+  const q = query.trim().toLowerCase()
+  const years = [...new Set(log.map(e => new Date(e.date).getFullYear()))].sort((a, b) => b - a)
+  const filteredLog = log.filter(e => {
+    if (minHearts && (e.rating || 0) < minHearts) return false
+    if (personFilter && e.addedBy !== personFilter) return false
+    if (yearFilter && new Date(e.date).getFullYear() !== yearFilter) return false
+    if (q && !`${e.placeName} ${e.notes || ''}`.toLowerCase().includes(q)) return false
+    return true
+  })
+  const isFiltering = q || minHearts || personFilter || yearFilter
+
+  // ── Relationship counter ──
+  const stats = relationshipStats(occasions?.firstDate)
+
   // Group memories by month for scrapbook chapter dividers (newest first).
-  const sorted = [...log].sort((a, b) => new Date(b.date) - new Date(a.date))
+  const sorted = [...filteredLog].sort((a, b) => new Date(b.date) - new Date(a.date))
   const groups = []
   sorted.forEach((entry, gi) => {
     const d = new Date(entry.date)
@@ -1259,15 +1483,71 @@ function LogView({ log, onAddEntry, onRemove, onAddPhoto, onRemovePhoto }) {
             )}
           </h2>
         </div>
-        <button className="pill-btn primary-pill pill-sm" onClick={() => { setAdding(a => !a); resetForm() }}>
+        <button className="pill-btn primary-pill pill-sm" onClick={() => { const was = adding; resetForm(); setAdding(!was) }}>
           {adding ? 'Cancel' : '＋ New memory'}
         </button>
       </div>
 
+      {/* ── Together-counter ── */}
+      {stats && (
+        <div className="together-banner">
+          <span className="together-heart">💞</span>
+          <div className="together-text">
+            <strong>
+              {stats.months > 0
+                ? `${stats.months} month${stats.months > 1 ? 's' : ''}${stats.days > 0 ? ` & ${stats.days} day${stats.days > 1 ? 's' : ''}` : ''} together`
+                : `${stats.totalDays} day${stats.totalDays !== 1 ? 's' : ''} together`}
+            </strong>
+            <span className="together-sub">
+              {log.length} date{log.length !== 1 ? 's' : ''} & counting · since {new Date(occasions.firstDate + 'T00:00').toLocaleDateString('en-AE', { day: 'numeric', month: 'long', year: 'numeric' })}
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* ── Search & filters (only useful once the book grows) ── */}
+      {log.length > 0 && (
+        <div className="filter-bar">
+          <input
+            className="form-input filter-search"
+            placeholder="🔍 Search memories…"
+            value={query}
+            onChange={e => setQuery(e.target.value)}
+          />
+          <div className="filter-chips">
+            {[0, 5, 4, 3].map(n => (
+              <button
+                key={n}
+                className={`filter-chip ${minHearts === n ? 'chip-on' : ''}`}
+                onClick={() => setMinHearts(n)}
+              >{n === 0 ? 'Any rating' : `${'❤'.repeat(n)}${n < 5 ? '+' : ''}`}</button>
+            ))}
+            <button className={`filter-chip ${!personFilter ? 'chip-on' : ''}`} onClick={() => setPersonFilter(null)}>Both</button>
+            {PEOPLE.map(p => (
+              <button
+                key={p}
+                className={`filter-chip ${personFilter === p ? 'chip-on' : ''}`}
+                onClick={() => setPersonFilter(f => f === p ? null : p)}
+              >by {p}</button>
+            ))}
+            {years.length > 1 && years.map(y => (
+              <button
+                key={y}
+                className={`filter-chip ${yearFilter === y ? 'chip-on' : ''}`}
+                onClick={() => setYearFilter(f => f === y ? null : y)}
+              >{y}</button>
+            ))}
+          </div>
+          {isFiltering && (
+            <p className="filter-count">{filteredLog.length} of {log.length} memories shown</p>
+          )}
+        </div>
+      )}
+
       {adding && (
         <div className="log-form sb-form">
           <span className="sb-tape" aria-hidden="true" />
-          <p className="sb-form-title">a new page in our story…</p>
+          <p className="sb-form-title">{editingId ? 'rewriting this page…' : 'a new page in our story…'}</p>
           {/* ── Paste a Google Maps link → name auto-fills ── */}
           <input
             className="form-input"
@@ -1352,7 +1632,7 @@ function LogView({ log, onAddEntry, onRemove, onAddPhoto, onRemovePhoto }) {
             disabled={saving || !form.name.trim()}
             style={{ width: '100%', justifyContent: 'center' }}
           >
-            {saving ? 'Saving…' : 'Save this memory ♥'}
+            {saving ? 'Saving…' : editingId ? 'Save changes ♥' : 'Save this memory ♥'}
           </button>
         </div>
       )}
@@ -1368,7 +1648,15 @@ function LogView({ log, onAddEntry, onRemove, onAddPhoto, onRemovePhoto }) {
         </div>
       )}
 
-      {log.length > 0 && (
+      {log.length > 0 && filteredLog.length === 0 && (
+        <div className="empty-state">
+          <span className="empty-icon">🔍</span>
+          <h2>No memories match</h2>
+          <p>Try a different search or filter</p>
+        </div>
+      )}
+
+      {filteredLog.length > 0 && (
         <div className="scrapbook">
           {groups.map(g => (
             <div className="sb-group" key={g.key}>
@@ -1379,6 +1667,7 @@ function LogView({ log, onAddEntry, onRemove, onAddPhoto, onRemovePhoto }) {
                   entry={entry}
                   index={gi}
                   onRemove={onRemove}
+                  onEdit={startEdit}
                   onAddPhoto={onAddPhoto}
                   onRemovePhoto={onRemovePhoto}
                 />
@@ -1640,20 +1929,250 @@ function FlightsView({ flights, onAdd, onUpdate, onRemove }) {
   )
 }
 
+// ─── Occasion banner — countdown to the next special day ─────────────────────
+function OccasionBanner({ occasions }) {
+  const upcoming = buildOccasions(occasions)
+  const soon = upcoming.filter(o => o.daysAway <= 14).slice(0, 2)
+  if (soon.length === 0) return null
+  return (
+    <div className="occasion-banners">
+      {soon.map(o => (
+        <div key={o.key} className={`occasion-banner ${o.daysAway === 0 ? 'occasion-today' : ''} ${o.big ? 'occasion-big' : ''}`}>
+          <span className="occasion-emoji">{o.emoji}</span>
+          <span className="occasion-text">
+            {o.daysAway === 0
+              ? <>It's <strong>{o.name}</strong> — today! Make it special 💝</>
+              : <><strong>{o.name}</strong> {o.daysAway === 1 ? 'is tomorrow' : `in ${o.daysAway} days`} · {o.date.toLocaleDateString('en-AE', { day: 'numeric', month: 'short' })}</>}
+          </span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+// ─── Movies View — shared watchlist + ratings + TMDB info ─────────────────────
+function MoviesView({ movies, me, onAdd, onUpdate, onRemove }) {
+  const [title, setTitle] = useState('')
+  const [adding, setAdding] = useState(false)
+  const partner = PEOPLE.find(p => p !== me)
+
+  // ── Live TMDB suggestions while typing ──
+  const [suggestions, setSuggestions] = useState([])
+  const [searching, setSearching] = useState(false)
+  const [expanded, setExpanded] = useState(null)   // movie id with plot open
+  const searchTimer = useRef(null)
+
+  const onTitleChange = v => {
+    setTitle(v)
+    clearTimeout(searchTimer.current)
+    if (v.trim().length < 2) { setSuggestions([]); setSearching(false); return }
+    setSearching(true)
+    searchTimer.current = setTimeout(async () => {
+      const hits = await cloud.searchMovies(v)
+      setSearching(false)
+      setSuggestions(hits)
+    }, 350)
+  }
+
+  // Pick a suggestion → fetch full details (adds runtime) → save with metadata
+  const pickSuggestion = async s => {
+    setSuggestions([])
+    setTitle('')
+    setAdding(true)
+    const full = (await cloud.movieDetails(s.id)) || s
+    const meta = {
+      tmdbId: full.id,
+      year: full.year || null,
+      poster: full.poster || null,
+      plot: full.plot || null,
+      score: full.score || null,
+      genres: full.genres || [],
+      runtime: full.runtime || null,
+    }
+    try { await onAdd(full.title, meta) } catch { /* ignore */ }
+    setAdding(false)
+  }
+
+  // Plain add (no metadata) — fallback if TMDB finds nothing / isn't set up
+  const submit = async () => {
+    const t = title.trim()
+    if (!t) return
+    setSuggestions([])
+    setAdding(true)
+    try { await onAdd(t, null); setTitle('') } catch { /* keep text */ }
+    setAdding(false)
+  }
+
+  const watchlist = movies.filter(m => !m.watchedAt)
+  const watched   = movies.filter(m => m.watchedAt)
+    .sort((a, b) => new Date(b.watchedAt) - new Date(a.watchedAt))
+
+  const Stars = ({ movie, person, editable }) => (
+    <div className={`movie-stars ${editable ? '' : 'movie-stars-ro'}`}>
+      <span className="movie-stars-who">{person}</span>
+      {[1, 2, 3, 4, 5].map(n => (
+        <button
+          key={n}
+          className={`heart-btn sm ${(movie.ratings?.[person] || 0) >= n ? 'heart-lit' : ''}`}
+          disabled={!editable}
+          onClick={() => editable && onUpdate(movie.id, { myRating: n })}
+        >♥</button>
+      ))}
+    </div>
+  )
+
+  const row = (m, isWatched) => {
+    const meta = m.meta || {}
+    const infoBits = [
+      meta.score ? `⭐ ${meta.score}` : null,
+      meta.runtime ? `${Math.floor(meta.runtime / 60)}h ${meta.runtime % 60}m` : null,
+      (meta.genres || []).join(' · ') || null,
+    ].filter(Boolean)
+    return (
+      <div key={m.id} className={`movie-row ${isWatched ? 'movie-watched' : ''}`}>
+        <div
+          className="movie-poster"
+          onClick={() => meta.plot && setExpanded(e => e === m.id ? null : m.id)}
+          style={{ cursor: meta.plot ? 'pointer' : 'default' }}
+        >
+          {meta.poster
+            ? <img src={meta.poster} alt={m.title} loading="lazy" />
+            : <span className="movie-poster-fallback">{isWatched ? '🎬' : '🍿'}</span>}
+        </div>
+        <div className="movie-main">
+          <span
+            className="movie-title"
+            onClick={() => meta.plot && setExpanded(e => e === m.id ? null : m.id)}
+            style={{ cursor: meta.plot ? 'pointer' : 'default' }}
+          >
+            {m.title}{meta.year && <span className="movie-year"> ({meta.year})</span>}
+          </span>
+          {infoBits.length > 0 && <span className="movie-info">{infoBits.join('  ·  ')}</span>}
+          {m.addedBy && <span className="movie-by">added by {m.addedBy}</span>}
+          {expanded === m.id && meta.plot && (
+            <p className="movie-plot">{meta.plot}</p>
+          )}
+          {isWatched && (
+            <div className="movie-ratings">
+              <Stars movie={m} person={me} editable />
+              {partner && <Stars movie={m} person={partner} editable={false} />}
+            </div>
+          )}
+        </div>
+        <div className="movie-actions">
+          {isWatched
+            ? <button className="row-btn" onClick={() => onUpdate(m.id, { watchedAt: null })}>↩ Unwatch</button>
+            : <button className="row-btn movie-watch-btn" onClick={() => onUpdate(m.id, { watchedAt: new Date().toISOString() })}>✓ Watched</button>}
+          <button className="row-btn row-btn-remove" onClick={() => onRemove(m.id)}>✕</button>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="list-view">
+      <div className="list-header">
+        <div className="sb-headline">
+          <span className="sb-eyebrow">Movie Nights</span>
+          <h2 className="list-title">Our Watchlist
+            {movies.length > 0 && <span className="list-count">{watchlist.length} to watch</span>}
+          </h2>
+        </div>
+      </div>
+
+      <div className="movie-add-wrap">
+        <div className="movie-add-row">
+          <input
+            className="form-input"
+            placeholder="🍿 Type a movie name…"
+            value={title}
+            onChange={e => onTitleChange(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter' && suggestions.length === 0) submit() }}
+          />
+          <button className="pill-btn primary-pill pill-sm" onClick={submit} disabled={adding || !title.trim()}>
+            {adding ? '…' : 'Add'}
+          </button>
+        </div>
+
+        {/* Live results from the movie database — tap the right one */}
+        {searching && <p className="resolve-hint">Searching the movie database…</p>}
+        {suggestions.length > 0 && (
+          <div className="movie-suggest">
+            {suggestions.map(s => (
+              <button key={s.id} className="movie-suggest-row" onClick={() => pickSuggestion(s)}>
+                <span className="movie-suggest-poster">
+                  {s.poster ? <img src={s.poster} alt="" loading="lazy" /> : '🎬'}
+                </span>
+                <span className="movie-suggest-info">
+                  <span className="movie-suggest-title">{s.title}{s.year && ` (${s.year})`}</span>
+                  <span className="movie-suggest-sub">
+                    {[s.score ? `⭐ ${s.score}` : null, (s.genres || []).slice(0, 2).join(', ') || null].filter(Boolean).join(' · ')}
+                  </span>
+                </span>
+              </button>
+            ))}
+            <p className="movie-suggest-hint">not there? hit Add to save it as plain text</p>
+          </div>
+        )}
+      </div>
+
+      {movies.length === 0 && (
+        <div className="empty-state">
+          <span className="empty-icon">🎬</span>
+          <h2>No movies yet</h2>
+          <p>Next movie night, add everything you talk about watching</p>
+        </div>
+      )}
+
+      {watchlist.length > 0 && (
+        <>
+          <p className="section-label">To watch</p>
+          {watchlist.map(m => row(m, false))}
+        </>
+      )}
+
+      {watched.length > 0 && (
+        <>
+          <p className="section-label">Watched · rate them ♥</p>
+          {watched.map(m => row(m, true))}
+        </>
+      )}
+    </div>
+  )
+}
+
 // ─── Settings View ────────────────────────────────────────────────────────────
-function SettingsView({ settings, setSettings, prefs, setPrefs, dataCount }) {
+function SettingsView({ settings, setSettings, prefs, setPrefs, dataCount, me, locations, onDetectMyLocation, occasions, onSaveOccasions }) {
   const set = (k, v) => setSettings(s => ({ ...s, [k]: v }))
   const [flash, setFlash] = useState(false)
+  const partner = PEOPLE.find(p => p !== me)
 
-  const detectLoc = who => {
-    navigator.geolocation?.getCurrentPosition(
-      pos => {
-        set(`${who}Lat`, +pos.coords.latitude.toFixed(6))
-        set(`${who}Lng`, +pos.coords.longitude.toFixed(6))
-        setFlash(true); setTimeout(() => setFlash(false), 1500)
-      },
-      () => alert('Could not detect location')
-    )
+  const detectLoc = async () => {
+    try {
+      await onDetectMyLocation()
+      setFlash(true); setTimeout(() => setFlash(false), 1500)
+    } catch { alert('Could not detect location') }
+  }
+
+  // ── Key dates ──
+  const occ = occasions || {}
+  const setOcc = patch => onSaveOccasions({ ...occ, ...patch })
+  const [newOccName, setNewOccName] = useState('')
+  const [newOccDate, setNewOccDate] = useState('')
+  const addCustom = () => {
+    if (!newOccName.trim() || !newOccDate) return
+    setOcc({ custom: [...(occ.custom || []), { id: Date.now().toString(36), name: newOccName.trim(), date: newOccDate, yearly: true }] })
+    setNewOccName(''); setNewOccDate('')
+  }
+
+  // ── Push notifications ──
+  const [pushStatus, setPushStatus] = useState('…')
+  useEffect(() => { cloud.getPushStatus().then(setPushStatus) }, [])
+  const enableNotifications = async () => {
+    const r = await cloud.enablePush()
+    setPushStatus(r === 'subscribed' ? 'subscribed' : r)
+    if (r === 'denied') alert('Notifications are blocked for this app — allow them in your phone settings, then try again.')
+    if (r === 'unsupported') alert('This browser can\'t do push. On iPhone: add the app to your Home Screen first (Share → Add to Home Screen), then open it from there.')
   }
 
   return (
@@ -1677,21 +2196,80 @@ function SettingsView({ settings, setSettings, prefs, setPrefs, dataCount }) {
 
       <div className="settings-card">
         <h3>Locations</h3>
-        <p className="settings-hint">Used to score places by distance from your midpoint</p>
+        <p className="settings-hint">
+          Shared between both phones — each of you taps Detect on your own device,
+          and both locations sync everywhere. Used for the distance midpoint.
+        </p>
+        {PEOPLE.map(p => {
+          const loc = locations?.[p]
+          const isMe = p === me
+          return (
+            <div className="loc-row" key={p}>
+              <span>{p}{isMe ? ' (you)' : ''}</span>
+              <div className="loc-right">
+                {loc?.lat != null && <span className="loc-coords">{loc.lat.toFixed(3)}, {loc.lng.toFixed(3)}</span>}
+                {isMe
+                  ? <button className="pill-btn outline-pill pill-sm" onClick={detectLoc}>Detect</button>
+                  : !loc && <span className="settings-hint" style={{ margin: 0 }}>ask {p} to tap Detect on their phone</span>}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      <div className="settings-card">
+        <h3>Key dates</h3>
+        <p className="settings-hint">Powers the together-counter, occasion reminders, and notifications</p>
         <div className="loc-row">
-          <span>Your location</span>
-          <div className="loc-right">
-            {settings.yourLat && <span className="loc-coords">{settings.yourLat.toFixed(3)}, {settings.yourLng.toFixed(3)}</span>}
-            <button className="pill-btn outline-pill pill-sm" onClick={() => detectLoc('your')}>Detect</button>
-          </div>
+          <span>First date 💞</span>
+          <input
+            className="form-input dt-input keydate-input"
+            type="date"
+            value={occ.firstDate || ''}
+            onChange={e => setOcc({ firstDate: e.target.value })}
+          />
         </div>
         <div className="loc-row">
-          <span>Her location</span>
-          <div className="loc-right">
-            {settings.herLat && <span className="loc-coords">{settings.herLat.toFixed(3)}, {settings.herLng.toFixed(3)}</span>}
-            <button className="pill-btn outline-pill pill-sm" onClick={() => detectLoc('her')}>Detect</button>
-          </div>
+          <span>Her birthday 🎂</span>
+          <input
+            className="form-input dt-input keydate-input"
+            type="date"
+            value={occ.herBirthday || ''}
+            onChange={e => setOcc({ herBirthday: e.target.value })}
+          />
         </div>
+        {(occ.custom || []).map(c => (
+          <div className="loc-row" key={c.id}>
+            <span>🎉 {c.name} · {new Date(c.date + 'T00:00').toLocaleDateString('en-AE', { day: 'numeric', month: 'short' })} (yearly)</span>
+            <button
+              className="row-btn row-btn-remove"
+              onClick={() => setOcc({ custom: (occ.custom || []).filter(x => x.id !== c.id) })}
+            >✕</button>
+          </div>
+        ))}
+        <div className="keydate-add">
+          <input className="form-input" placeholder="Occasion name (e.g. Met for the first time)" value={newOccName} onChange={e => setNewOccName(e.target.value)} />
+          <input className="form-input dt-input" type="date" value={newOccDate} onChange={e => setNewOccDate(e.target.value)} />
+          <button className="pill-btn outline-pill pill-sm" onClick={addCustom} disabled={!newOccName.trim() || !newOccDate}>Add</button>
+        </div>
+      </div>
+
+      <div className="settings-card">
+        <h3>Notifications</h3>
+        <p className="settings-hint">
+          Real lock-screen notifications: monthly mini-anniversary, the big anniversary,
+          occasions, and a start-of-month nudge to log her flights.
+          On iPhone the app must be added to the Home Screen first.
+        </p>
+        {pushStatus === 'subscribed' ? (
+          <p className="settings-hint" style={{ color: '#6a8c5a' }}>✓ Notifications are on for this device</p>
+        ) : pushStatus === 'unconfigured' ? (
+          <p className="settings-hint">⚠ Push isn't set up on the server yet — see UPDATE-SETUP.md</p>
+        ) : (
+          <button className="pill-btn primary-pill pill-sm" onClick={enableNotifications}>
+            🔔 Enable on this device
+          </button>
+        )}
       </div>
 
       <div className="settings-card">
@@ -1783,6 +2361,7 @@ export default function App() {
     vibe: '',
     budget: 0,
     when: '',
+    duration: 0,
     categories: [],
   })
   const setAnswer = (k, v) => setAnswers(a => ({ ...a, [k]: v }))
@@ -1816,14 +2395,29 @@ export default function App() {
   // Flights also live in the shared cloud now (loaded by the effect below).
   const [flights, setFlights] = useState([])
 
+  // Movies watchlist, shared locations, and key dates — all shared + synced.
+  const [movies, setMovies] = useState([])
+  const [locations, setLocations] = useState(undefined)  // { Boody: {lat,lng}, Janjon: {lat,lng} }
+  const [occasions, setOccasions] = useState(null)
+
+  // ─── Coordinates derived from the shared locations ─────────
+  // (falls back to the old per-device settings so nothing breaks mid-migration)
+  const partner = PEOPLE.find(p => p !== me)
+  const myLoc  = (me && locations?.[me]?.lat != null ? locations[me] : null)
+    || (settings.yourLat ? { lat: settings.yourLat, lng: settings.yourLng } : null)
+  const herLoc = (partner && locations?.[partner]?.lat != null ? locations[partner] : null)
+    || (settings.herLat ? { lat: settings.herLat, lng: settings.herLng } : null)
+  const midLat = myLoc && herLoc ? (myLoc.lat + herLoc.lat) / 2 : (myLoc?.lat ?? herLoc?.lat ?? null)
+  const midLng = myLoc && herLoc ? (myLoc.lng + herLoc.lng) / 2 : (myLoc?.lng ?? herLoc?.lng ?? null)
+
   // ─── Weather state ────────────────────────────────────────
   const [weather, setWeather] = useState(null)
   // { tempC: number, humidity: number, lat: number, lng: number, fetchedAt: Date }
 
   // Fetch weather from Open-Meteo (free, no key) whenever we have coordinates
   useEffect(() => {
-    const lat = settings.yourLat || settings.herLat
-    const lng = settings.yourLng || settings.herLng
+    const lat = midLat
+    const lng = midLng
     if (!lat || !lng) return
     // Don't re-fetch if we have fresh data for same location (< 30 min old)
     if (weather && weather.lat === lat && weather.lng === lng &&
@@ -1843,18 +2437,33 @@ export default function App() {
         })
       })
       .catch(() => {}) // non-fatal
-  }, [settings.yourLat, settings.yourLng, settings.herLat, settings.herLng])
+  }, [midLat, midLng]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Also try to get user location on first load if no coords saved
+  // Auto-detect MY location on load (once shared locations have loaded) and
+  // store it in the shared cloud so it's global across both phones.
   useEffect(() => {
-    if (settings.yourLat) return // already have location
+    if (!me || locations === undefined) return     // wait for identity + first load
+    if (locations?.[me]?.lat != null) return       // already known
     if (!navigator.geolocation) return
-    navigator.geolocation.getCurrentPosition(pos => {
-      const lat = +pos.coords.latitude.toFixed(6)
-      const lng = +pos.coords.longitude.toFixed(6)
-      setSettings(s => ({ ...s, yourLat: lat, yourLng: lng }))
+    navigator.geolocation.getCurrentPosition(async pos => {
+      try {
+        const next = await cloud.saveLocation(me, +pos.coords.latitude.toFixed(6), +pos.coords.longitude.toFixed(6))
+        setLocations(next)
+      } catch { /* ignore */ }
     }, () => {}, { timeout: 8000 })
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [me, locations]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Settings → "Detect" button (always saves under MY name, shared globally)
+  const detectMyLocation = useCallback(() => new Promise((resolve, reject) => {
+    if (!me || !navigator.geolocation) return reject(new Error('unavailable'))
+    navigator.geolocation.getCurrentPosition(async pos => {
+      try {
+        const next = await cloud.saveLocation(me, +pos.coords.latitude.toFixed(6), +pos.coords.longitude.toFixed(6))
+        setLocations(next)
+        resolve()
+      } catch (e) { reject(e) }
+    }, reject, { timeout: 10000 })
+  }), [me])
 
   // ─── Live clock for info panel ────────────────────────────
   const [now, setNow] = useState(new Date())
@@ -1892,10 +2501,17 @@ export default function App() {
   // ─── Shared data: load Saved + Log + Flights and keep them live-synced ───────
   const refreshShared = useCallback(async () => {
     try {
-      const [s, l, fl] = await Promise.all([cloud.fetchSaved(), cloud.fetchLog(), cloud.fetchFlights()])
+      const [s, l, fl, mv, loc, occ] = await Promise.all([
+        cloud.fetchSaved(), cloud.fetchLog(), cloud.fetchFlights(),
+        cloud.fetchMovies(), cloud.fetchLocations(), cloud.fetchOccasions(),
+      ])
       setLiked(s)
       setVisitLog(l)
       setFlights(fl)
+      setMovies(mv)
+      setLocations(loc || {})
+      // First date defaults to 19 May 2026 — change it any time in Settings.
+      setOccasions(occ || { firstDate: '2026-05-19' })
     } catch (e) { console.warn('refreshShared', e) }
   }, [])
 
@@ -1924,6 +2540,11 @@ export default function App() {
         try { await cloud.addPhoto(entry.id, f) } catch (e) { console.warn(e) }
       }
     }
+    await refreshShared()
+  }, [refreshShared])
+
+  const updateLogEntry = useCallback(async (id, data) => {
+    try { await cloud.updateLog(id, data) } catch (e) { console.warn(e); throw e }
     await refreshShared()
   }, [refreshShared])
 
@@ -1960,17 +2581,38 @@ export default function App() {
     try { await cloud.removeFlight(id) } catch (e) { console.warn(e) }
   }, [])
 
+  // ─── Movies ───────────────────────────────────────────────
+  const addMovieEntry = useCallback(async (title, meta = null) => {
+    try { await cloud.addMovie(title, meta) } catch (e) { console.warn(e) }
+    await refreshShared()
+  }, [refreshShared])
+
+  const updateMovieEntry = useCallback(async (id, patch) => {
+    setMovies(prev => prev.map(m => m.id !== id ? m : {
+      ...m,
+      ...(patch.watchedAt !== undefined ? { watchedAt: patch.watchedAt } : {}),
+      ...(patch.myRating  !== undefined ? { ratings: { ...m.ratings, [me]: patch.myRating } } : {}),
+    }))
+    try { await cloud.updateMovie(id, patch) } catch (e) { console.warn(e) }
+  }, [me])
+
+  const removeMovieEntry = useCallback(async id => {
+    setMovies(prev => prev.filter(m => m.id !== id))
+    try { await cloud.removeMovie(id) } catch (e) { console.warn(e) }
+  }, [])
+
+  // ─── Occasions / key dates ────────────────────────────────
+  const saveOccasionsCfg = useCallback(async occ => {
+    setOccasions(occ)
+    try { await cloud.saveOccasions(occ) } catch (e) { console.warn(e) }
+  }, [])
+
   // ─── Build queue (quiz-driven) ─────────────────────────────
   const buildQueue = useCallback(async () => {
     if (allPlaces.length === 0) return
     setAiLoading(true)
 
     const model = buildPreferenceModel(liked, prefs)
-    const midLat = settings.yourLat && settings.herLat
-      ? (settings.yourLat + settings.herLat) / 2 : settings.yourLat || null
-    const midLng = settings.yourLng && settings.herLng
-      ? (settings.yourLng + settings.herLng) / 2 : settings.yourLng || null
-
     const filterCats = answers.categories?.length > 0 ? answers.categories : null
     const seen = new Set([...prefs.swipedLeft, ...prefs.swipedRight])
 
@@ -2030,7 +2672,7 @@ Return ONLY a JSON array of 15 IDs. No explanation.`,
 
     setQueue(candidates)
     setQIdx(0); setAiLoading(false); setView('discover')
-  }, [allPlaces, answers, settings, prefs, liked, weather])
+  }, [allPlaces, answers, settings, prefs, liked, weather, midLat, midLng])
 
   // ─── Feeling Spontaneous ────────────────────────────────────
   const handleSpontaneous = useCallback(() => {
@@ -2039,8 +2681,8 @@ Return ONLY a JSON array of 15 IDs. No explanation.`,
 
     const run = (currentLat, currentLng) => {
       const model = buildPreferenceModel(liked, prefs)
-      const lat = currentLat ?? settings.yourLat ?? null
-      const lng = currentLng ?? settings.yourLng ?? null
+      const lat = currentLat ?? myLoc?.lat ?? null
+      const lng = currentLng ?? myLoc?.lng ?? null
       const now = new Date()
       const seen = new Set([...prefs.swipedLeft, ...prefs.swipedRight])
 
@@ -2083,7 +2725,7 @@ Return ONLY a JSON array of 15 IDs. No explanation.`,
     } else {
       run(null, null)
     }
-  }, [allPlaces, liked, prefs, settings, weather])
+  }, [allPlaces, liked, prefs, weather, myLoc])
 
   // ─── Swipe handler ─────────────────────────────────────────
   const handleSwipe = useCallback((direction) => {
@@ -2124,16 +2766,14 @@ Return ONLY a JSON array of 15 IDs. No explanation.`,
   // ─── Visible card stack ────────────────────────────────────
   const visibleCards = queue.slice(qIdx, qIdx + 3)
   const isDone = queue.length > 0 && qIdx >= queue.length
-  const midLat = settings.yourLat || settings.herLat
-  const midLng = settings.yourLng || settings.herLng
 
   // ─── Render ────────────────────────────────────────────────
   return (
     <div className="app">
       {/* ── Info panel ─────────────────────────────────────── */}
       {(() => {
-        const lat  = settings.yourLat || settings.herLat
-        const lng  = settings.yourLng || settings.herLng
+        const lat  = midLat
+        const lng  = midLng
         const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
         const dayStr  = DAYS[now.getDay()]
         const dateStr = now.toLocaleDateString('en-AE', { day: 'numeric', month: 'short' })
@@ -2191,6 +2831,9 @@ Return ONLY a JSON array of 15 IDs. No explanation.`,
                 ♡ Saved{liked.length > 0 && <span className="nav-badge">{liked.length}</span>}
               </button>
               <button className={`nav-btn ${view === 'log' ? 'nav-active' : ''}`} onClick={() => setView('log')}>◎ Log</button>
+              <button className={`nav-btn ${view === 'movies' ? 'nav-active' : ''}`} onClick={() => setView('movies')}>
+                🎬 Movies{movies.filter(m => !m.watchedAt).length > 0 && <span className="nav-badge">{movies.filter(m => !m.watchedAt).length}</span>}
+              </button>
               <button className={`nav-btn ${view === 'flights' ? 'nav-active' : ''}`} onClick={() => setView('flights')}>
                 ✈ Schedule{flights.length > 0 && <span className="nav-badge">{flights.length}</span>}
               </button>
@@ -2204,6 +2847,7 @@ Return ONLY a JSON array of 15 IDs. No explanation.`,
       <main className="app-main">
 
         {/* ── Quiz ── */}
+        {view === 'quiz' && occasions && <OccasionBanner occasions={occasions} />}
         {view === 'quiz' && (
           <QuizView
             step={quizStep}
@@ -2302,9 +2946,22 @@ Return ONLY a JSON array of 15 IDs. No explanation.`,
           <LogView
             log={visitLog}
             onAddEntry={addLogEntry}
+            onUpdateEntry={updateLogEntry}
             onRemove={removeLogEntry}
             onAddPhoto={addLogPhoto}
             onRemovePhoto={removeLogPhoto}
+            occasions={occasions}
+          />
+        )}
+
+        {/* ── Movies ── */}
+        {view === 'movies' && (
+          <MoviesView
+            movies={movies}
+            me={me}
+            onAdd={addMovieEntry}
+            onUpdate={updateMovieEntry}
+            onRemove={removeMovieEntry}
           />
         )}
 
@@ -2326,6 +2983,11 @@ Return ONLY a JSON array of 15 IDs. No explanation.`,
             prefs={prefs}
             setPrefs={setPrefs}
             dataCount={allPlaces.length}
+            me={me}
+            locations={locations}
+            onDetectMyLocation={detectMyLocation}
+            occasions={occasions}
+            onSaveOccasions={saveOccasionsCfg}
           />
         )}
       </main>

@@ -2073,3 +2073,191 @@ body {
   color: var(--rose);
 }
 .fm-label-home { color: var(--gold) }
+
+/* ── Edit button on memory cards (next to ✕) ─────────────────── */
+.sb-edit {
+  position: absolute;
+  top: 8px; right: 30px;
+  background: none; border: none;
+  color: var(--ink4);
+  cursor: pointer;
+  font-size: 13px;
+  padding: 5px;
+  transition: color .15s;
+}
+.sb-edit:hover { color: var(--gold) }
+
+/* ── Search & filter bar (Log + Saved) ───────────────────────── */
+.filter-bar { margin: 12px 0 18px; display: flex; flex-direction: column; gap: 8px }
+.filter-search { width: 100% }
+.filter-chips { display: flex; flex-wrap: wrap; gap: 6px }
+.filter-chip {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink2);
+  cursor: pointer;
+  transition: all .15s;
+}
+.filter-chip:hover { border-color: var(--gold2) }
+.filter-chip.chip-on {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: #fff;
+}
+.filter-count { font-size: 12px; color: var(--ink3); margin: 0 }
+
+/* ── Together-counter banner ─────────────────────────────────── */
+.together-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: linear-gradient(120deg, rgba(196,96,74,.10), rgba(196,147,63,.10));
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 12px 16px;
+  margin: 12px 0 4px;
+}
+.together-heart { font-size: 26px }
+.together-text { display: flex; flex-direction: column; gap: 2px }
+.together-text strong { font-size: 15px; color: var(--ink) }
+.together-sub { font-size: 12px; color: var(--ink3) }
+
+/* ── Occasion banners ────────────────────────────────────────── */
+.occasion-banners { display: flex; flex-direction: column; gap: 8px; margin: 10px 14px 0 }
+.occasion-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 10px 14px;
+  font-size: 13px;
+  color: var(--ink2);
+  box-shadow: var(--shadow);
+}
+.occasion-banner strong { color: var(--ink) }
+.occasion-emoji { font-size: 20px }
+.occasion-today {
+  background: linear-gradient(120deg, rgba(196,96,74,.14), rgba(232,192,122,.18));
+  border-color: var(--gold2);
+  animation: occasionGlow 2.2s ease-in-out infinite;
+}
+@keyframes occasionGlow {
+  0%, 100% { box-shadow: 0 0 0 rgba(196,147,63,0) }
+  50%      { box-shadow: 0 0 18px rgba(196,147,63,.35) }
+}
+
+/* ── Movies ──────────────────────────────────────────────────── */
+.movie-add-wrap { margin: 12px 0 18px }
+.movie-add-row { display: flex; gap: 8px }
+.movie-add-row .form-input { flex: 1; margin: 0 }
+
+/* live TMDB suggestions */
+.movie-suggest {
+  margin-top: 6px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  box-shadow: var(--shadow2);
+  overflow: hidden;
+}
+.movie-suggest-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 10px;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  text-align: left;
+  transition: background .12s;
+}
+.movie-suggest-row:hover { background: rgba(196,147,63,.08) }
+.movie-suggest-poster {
+  width: 34px; height: 50px;
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--dust);
+  border-radius: 5px;
+  overflow: hidden;
+  font-size: 17px;
+}
+.movie-suggest-poster img { width: 100%; height: 100%; object-fit: cover }
+.movie-suggest-info { display: flex; flex-direction: column; gap: 2px; min-width: 0 }
+.movie-suggest-title { font-size: 14px; font-weight: 600; color: var(--ink) }
+.movie-suggest-sub { font-size: 11.5px; color: var(--ink3) }
+.movie-suggest-hint {
+  font-size: 11px;
+  color: var(--ink4);
+  text-align: center;
+  margin: 0;
+  padding: 6px;
+}
+
+/* posters & info on movie rows */
+.movie-poster {
+  width: 52px; height: 76px;
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--dust);
+  border-radius: 7px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(60,30,10,.14);
+}
+.movie-poster img { width: 100%; height: 100%; object-fit: cover }
+.movie-poster-fallback { font-size: 22px }
+.movie-year { font-weight: 500; color: var(--ink3); font-size: 13px }
+.movie-info { font-size: 11.5px; color: var(--ink2) }
+.movie-plot {
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--ink2);
+  margin: 4px 0 0;
+  font-style: italic;
+}
+.movie-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 12px 14px;
+  margin-bottom: 8px;
+}
+.movie-main { display: flex; flex-direction: column; gap: 3px; min-width: 0 }
+.movie-title { font-size: 15px; font-weight: 600; color: var(--ink) }
+.movie-watched .movie-title { color: var(--ink2) }
+.movie-by { font-size: 11px; color: var(--ink3) }
+.movie-actions { display: flex; gap: 6px; flex-shrink: 0 }
+.movie-watch-btn { border-color: var(--sage) !important; color: var(--sage) !important }
+.movie-ratings { display: flex; flex-direction: column; gap: 0; margin-top: 4px }
+.movie-stars { display: flex; align-items: center; gap: 1px }
+.movie-stars-who {
+  font-size: 11px;
+  color: var(--ink3);
+  width: 52px;
+  flex-shrink: 0;
+}
+.heart-btn.sm { font-size: 15px; padding: 0 1px }
+.movie-stars-ro .heart-btn { cursor: default }
+.movie-stars-ro .heart-btn:hover { transform: none }
+
+/* ── Key dates (Settings) ────────────────────────────────────── */
+.keydate-input { max-width: 170px; margin: 0 }
+.keydate-add {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--border2);
+}

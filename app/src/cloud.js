@@ -250,6 +250,39 @@ export async function addLog(data) {
   return { id: row.id, placeName: row.place_name, addedBy: row.added_by, photos: [] }
 }
 
+// Edit an existing memory (name, rating, notes, visit date, link, coords).
+export async function updateLog(id, data) {
+  const visitISO = data.visitDate ? new Date(data.visitDate).toISOString() : null
+  if (!isCloud) {
+    const entries = lsGet(LS.log)
+    const i = entries.findIndex(e => e.id === id)
+    if (i !== -1) {
+      entries[i] = {
+        ...entries[i],
+        placeName: data.placeName ?? entries[i].placeName,
+        rating: data.rating ?? entries[i].rating,
+        notes: data.notes ?? entries[i].notes,
+        date: visitISO || entries[i].date,
+        googleUrl: data.googleUrl !== undefined ? data.googleUrl : entries[i].googleUrl,
+        lat: data.lat !== undefined ? data.lat : entries[i].lat,
+        lng: data.lng !== undefined ? data.lng : entries[i].lng,
+      }
+      lsSet(LS.log, entries); ping()
+    }
+    return
+  }
+  const patch = {}
+  if (data.placeName !== undefined) patch.place_name = data.placeName
+  if (data.rating    !== undefined) patch.rating = data.rating
+  if (data.notes     !== undefined) patch.notes = data.notes || null
+  if (visitISO)                     patch.visit_date = visitISO
+  if (data.googleUrl !== undefined) patch.google_url = data.googleUrl || null
+  if (data.lat       !== undefined) patch.lat = data.lat
+  if (data.lng       !== undefined) patch.lng = data.lng
+  const { error } = await supabase.from('log_entries').update(patch).eq('id', id)
+  if (error) { console.warn('updateLog', error); throw error }
+}
+
 export async function removeLog(id) {
   if (!isCloud) {
     const entries = lsGet(LS.log)
@@ -317,6 +350,8 @@ export function subscribe(cb) {
     .on('postgres_changes', { event: '*', schema: 'public', table: 'log_entries' }, cb)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'log_photos' }, cb)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'flights' }, cb)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'movies' }, cb)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'app_prefs' }, cb)
     .subscribe()
   return () => { supabase.removeChannel(ch) }
 }
@@ -489,4 +524,170 @@ export async function savePrefs(prefs) {
   await supabase
     .from('app_prefs')
     .upsert({ id: 'shared', data: prefs, updated_at: new Date().toISOString() }, { onConflict: 'id' })
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+//  Generic shared rows in app_prefs (one JSON blob per id) — used for the
+//  shared locations and the key-dates/occasions config.
+// ═════════════════════════════════════════════════════════════════════════════
+async function fetchPrefsRow(rowId, lsKey) {
+  if (!isCloud) return lsGetRaw(lsKey)
+  const { data, error } = await supabase
+    .from('app_prefs').select('data').eq('id', rowId).maybeSingle()
+  if (error) { console.warn(`fetch ${rowId}`, error); return null }
+  return data?.data || null
+}
+
+async function savePrefsRow(rowId, lsKey, obj) {
+  try { localStorage.setItem(lsKey, JSON.stringify(obj)) } catch { /* */ }
+  if (!isCloud) { ping(); return }
+  await supabase
+    .from('app_prefs')
+    .upsert({ id: rowId, data: obj, updated_at: new Date().toISOString() }, { onConflict: 'id' })
+}
+
+// ── Locations — shared & global. { Boody: {lat,lng,updatedAt}, Janjon: {...} }
+export const fetchLocations = () => fetchPrefsRow('locations', 'dn_loc')
+export async function saveLocation(person, lat, lng) {
+  const cur = (await fetchLocations()) || {}
+  const next = { ...cur, [person]: { lat, lng, updatedAt: new Date().toISOString() } }
+  await savePrefsRow('locations', 'dn_loc', next)
+  return next
+}
+
+// ── Occasions / key dates — shared.
+//    { firstDate: 'YYYY-MM-DD', herBirthday: 'YYYY-MM-DD',
+//      custom: [{ id, name, date: 'YYYY-MM-DD', yearly: true }] }
+export const fetchOccasions = () => fetchPrefsRow('occasions', 'dn_occ')
+export const saveOccasions  = occ => savePrefsRow('occasions', 'dn_occ', occ)
+
+// ═════════════════════════════════════════════════════════════════════════════
+//  MOVIES — shared watchlist with ratings from each of you
+//  Shape: { id, title, notes, addedBy, createdAt, watchedAt, ratings: {Boody: n, Janjon: n} }
+// ═════════════════════════════════════════════════════════════════════════════
+const LS_MOVIES = 'dn_m'
+
+export async function fetchMovies() {
+  if (!isCloud) return lsGet(LS_MOVIES)
+  const { data, error } = await supabase
+    .from('movies').select('*').order('created_at', { ascending: false })
+  if (error) { console.warn('fetchMovies', error); return [] }
+  return data.map(r => ({
+    id: r.id, title: r.title, notes: r.notes || '', meta: r.meta || null,
+    addedBy: r.added_by, createdAt: r.created_at,
+    watchedAt: r.watched_at, ratings: r.ratings || {},
+  }))
+}
+
+// meta (optional, from TMDB): { tmdbId, year, poster, plot, score, genres, runtime }
+export async function addMovie(title, meta = null, notes = '') {
+  const me = getMe()
+  if (!isCloud) {
+    const m = { id: uid(), title, notes, meta, addedBy: me, createdAt: new Date().toISOString(), watchedAt: null, ratings: {} }
+    lsSet(LS_MOVIES, [m, ...lsGet(LS_MOVIES)]); ping()
+    return m
+  }
+  const { error } = await supabase.from('movies').insert({ title, notes: notes || null, meta, added_by: me })
+  if (error) { console.warn('addMovie', error); throw error }
+}
+
+// ── TMDB lookup (proxied through /api/movie-search so the key stays secret) ──
+export async function searchMovies(q) {
+  if (!q?.trim()) return []
+  try {
+    const r = await fetch(`/api/movie-search?q=${encodeURIComponent(q.trim())}`)
+    if (!r.ok) return []
+    const d = await r.json()
+    return Array.isArray(d) ? d : []
+  } catch { return [] }
+}
+
+export async function movieDetails(tmdbId) {
+  try {
+    const r = await fetch(`/api/movie-search?id=${encodeURIComponent(tmdbId)}`)
+    if (!r.ok) return null
+    const d = await r.json()
+    return d && d.id ? d : null
+  } catch { return null }
+}
+
+// patch: { watchedAt?, myRating?, title?, notes? } — myRating is stamped under getMe()
+export async function updateMovie(id, patch) {
+  const me = getMe()
+  if (!isCloud) {
+    const list = lsGet(LS_MOVIES)
+    const i = list.findIndex(m => m.id === id)
+    if (i !== -1) {
+      const m = { ...list[i] }
+      if (patch.watchedAt !== undefined) m.watchedAt = patch.watchedAt
+      if (patch.title     !== undefined) m.title = patch.title
+      if (patch.notes     !== undefined) m.notes = patch.notes
+      if (patch.myRating  !== undefined) m.ratings = { ...m.ratings, [me]: patch.myRating }
+      list[i] = m; lsSet(LS_MOVIES, list); ping()
+    }
+    return
+  }
+  const upd = {}
+  if (patch.watchedAt !== undefined) upd.watched_at = patch.watchedAt
+  if (patch.title     !== undefined) upd.title = patch.title
+  if (patch.notes     !== undefined) upd.notes = patch.notes || null
+  if (patch.myRating  !== undefined) {
+    // read-modify-write the ratings blob (2-person app: races are harmless)
+    const { data } = await supabase.from('movies').select('ratings').eq('id', id).maybeSingle()
+    upd.ratings = { ...(data?.ratings || {}), [me]: patch.myRating }
+  }
+  await supabase.from('movies').update(upd).eq('id', id)
+}
+
+export async function removeMovie(id) {
+  if (!isCloud) {
+    lsSet(LS_MOVIES, lsGet(LS_MOVIES).filter(m => m.id !== id)); ping()
+    return
+  }
+  await supabase.from('movies').delete().eq('id', id)
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+//  PUSH NOTIFICATIONS — register this device for real lock-screen notifications
+//  Requires: VITE_VAPID_PUBLIC_KEY env var + the push_subscriptions table
+//  (see supabase-update.sql) + the /api/send-reminders cron on Vercel.
+// ═════════════════════════════════════════════════════════════════════════════
+const VAPID_PUBLIC = import.meta.env.VITE_VAPID_PUBLIC_KEY || ''
+export const pushConfigured = !!VAPID_PUBLIC && isCloud
+
+function urlB64ToUint8(b64) {
+  const pad = '='.repeat((4 - (b64.length % 4)) % 4)
+  const raw = atob((b64 + pad).replace(/-/g, '+').replace(/_/g, '/'))
+  return Uint8Array.from([...raw].map(c => c.charCodeAt(0)))
+}
+
+// Returns 'subscribed' | 'denied' | 'unsupported' | 'unconfigured'
+export async function enablePush() {
+  if (!pushConfigured) return 'unconfigured'
+  if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window))
+    return 'unsupported'
+  const perm = await Notification.requestPermission()
+  if (perm !== 'granted') return 'denied'
+  const reg = await navigator.serviceWorker.ready
+  const sub = await reg.pushManager.subscribe({
+    userVisibleOnly: true,
+    applicationServerKey: urlB64ToUint8(VAPID_PUBLIC),
+  })
+  const json = sub.toJSON()
+  await supabase.from('push_subscriptions').upsert(
+    { endpoint: json.endpoint, subscription: json, person: getMe() },
+    { onConflict: 'endpoint' }
+  )
+  return 'subscribed'
+}
+
+// (sync marker)
+export async function getPushStatus() {
+  if (!pushConfigured) return 'unconfigured'
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) return 'unsupported'
+  try {
+    const reg = await navigator.serviceWorker.ready
+    const sub = await reg.pushManager.getSubscription()
+    return sub ? 'subscribed' : 'off'
+  } catch { return 'off' }
 }

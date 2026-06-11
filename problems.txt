@@ -1,0 +1,3 @@
+- in the setting "Location": my location and her location are not synced (they are no global) if I chose boody then my location is detected and from her side when she choses janjon then her location is detected and it's used across all the app (both of our locations)
+
+- the log memories can't be edited just removed and added
