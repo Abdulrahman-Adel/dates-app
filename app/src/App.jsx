@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { createPortal } from 'react-dom'
 import * as cloud from './cloud'
 import { PEOPLE } from './cloud'
@@ -11,6 +11,22 @@ import sticker1Src     from '../Stickers/Sticker 1.png'
 import sticker2Src     from '../Stickers/Sticker 2.png'
 import sticker3Src     from '../Stickers/Sticker 3.png'
 import peekStickerSrc  from '../Stickers/Peek Sticker.png'
+
+// Welcome stickers — drop any images into app/Stickers/Welcome/ and they're
+// picked up automatically. A different one is shown each visit (never the same
+// one twice in a row).
+const welcomeStickers = Object.values(
+  import.meta.glob('../Stickers/Welcome/*.{png,jpg,jpeg,webp,gif,svg}', { eager: true, import: 'default' })
+)
+function pickWelcomeSticker() {
+  if (welcomeStickers.length === 0) return sticker3Src
+  if (welcomeStickers.length === 1) return welcomeStickers[0]
+  const last = Number(localStorage.getItem('dn_welcome_idx'))
+  let idx
+  do { idx = Math.floor(Math.random() * welcomeStickers.length) } while (idx === last)
+  localStorage.setItem('dn_welcome_idx', String(idx))
+  return welcomeStickers[idx]
+}
 
 // ─── Storage ──────────────────────────────────────────────────────────────────
 const SK = { settings: 'dn_s', log: 'dn_l', prefs: 'dn_p', liked: 'dn_k', flights: 'dn_f' }
@@ -938,6 +954,7 @@ function QuizView({ step, answers, setAnswer, onNext, onBack, loading, onSpontan
   const q = QUIZ_STEPS[step]
   const isLast = step === QUIZ_STEPS.length - 1
   const canNext = q.type === 'cards' ? (answers[q.id] !== undefined && answers[q.id] !== '') : true
+  const welcomeSticker = useMemo(pickWelcomeSticker, [])
 
   const defaultDT = () => {
     const d = new Date()
@@ -957,7 +974,7 @@ function QuizView({ step, answers, setAnswer, onNext, onBack, loading, onSpontan
       {/* Welcome on step 0 */}
       {step === 0 && (
         <div className="quiz-welcome">
-          <img src={sticker3Src} alt="" className="sticker-welcome" />
+          <img src={welcomeSticker} alt="" className="sticker-welcome" />
           <h1 className="welcome-title">Your perfect<br/><em>evening</em> awaits</h1>
           <p className="welcome-sub">Answer a few questions and we'll curate your night</p>
           {onSpontaneous && (
@@ -2177,9 +2194,6 @@ function SettingsView({ settings, setSettings, prefs, setPrefs, dataCount, me, l
 
   return (
     <div className="settings-view">
-      <div className="settings-hero">
-        <img src={sticker3Src} alt="" className="sticker-settings" />
-      </div>
       <h2 className="list-title">Settings</h2>
 
       <div className="settings-card">
@@ -2814,19 +2828,19 @@ Return ONLY a JSON array of 15 IDs. No explanation.`,
       })()}
 
       {/* Header */}
-      <header className={`app-header${view !== 'quiz' ? ' with-nav' : ''}`}>
-        {view === 'quiz' ? (
-          <div style={{ width: '100%', textAlign: 'center' }}>
-            <span className="logo-wordmark">Dubai</span>
-            <div className="logo">Where should we go <em>tonight?</em></div>
-          </div>
-        ) : (
-          <>
-            <div className="logo" onClick={() => setView('discover')} style={{ cursor: 'pointer' }}>
-              Date <em>Night</em>
-            </div>
-            <nav className="app-nav">
-              <button className={`nav-btn ${view === 'discover' ? 'nav-active' : ''}`} onClick={() => setView('discover')}>✦ Discover</button>
+      <header className="app-header with-nav">
+        <div
+          className="logo"
+          onClick={() => { setQuizStep(0); setView('quiz') }}
+          style={{ cursor: 'pointer' }}
+        >
+          Date <em>Night</em>
+        </div>
+        <nav className="app-nav">
+              <button
+            className={`nav-btn ${view === 'discover' || view === 'quiz' ? 'nav-active' : ''}`}
+            onClick={() => setView(queue.length > 0 ? 'discover' : 'quiz')}
+          >✦ Discover</button>
               <button className={`nav-btn ${view === 'liked' ? 'nav-active' : ''}`} onClick={() => setView('liked')}>
                 ♡ Saved{liked.length > 0 && <span className="nav-badge">{liked.length}</span>}
               </button>
@@ -2837,10 +2851,8 @@ Return ONLY a JSON array of 15 IDs. No explanation.`,
               <button className={`nav-btn ${view === 'flights' ? 'nav-active' : ''}`} onClick={() => setView('flights')}>
                 ✈ Schedule{flights.length > 0 && <span className="nav-badge">{flights.length}</span>}
               </button>
-              <button className={`nav-btn ${view === 'settings' ? 'nav-active' : ''}`} onClick={() => setView('settings')}>⚙ Settings</button>
-            </nav>
-          </>
-        )}
+          <button className={`nav-btn ${view === 'settings' ? 'nav-active' : ''}`} onClick={() => setView('settings')}>⚙ Settings</button>
+        </nav>
       </header>
 
       {/* Main */}
